@@ -1,0 +1,32 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-11-09 11:21:03.159268",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "outsourcing_job_work"
+ ],
+ "fields": [
+  {
+   "fieldname": "outsourcing_job_work",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Outsourcing Job Work ",
+   "options": "Outsourcing Job Work"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-11-11 16:26:53.561945",
+ "modified_by": "Administrator",
+ "module": "Outsourcing JobWork",
+ "name": "Outsourcing Job Work  Multi select",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

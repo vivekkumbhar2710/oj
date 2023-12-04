@@ -1,0 +1,191 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-11-09 11:05:25.102021",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "item_code",
+  "column_break_ywr5a",
+  "item_name",
+  "column_break_6o0oz",
+  "uom",
+  "column_break_ojj54",
+  "rate",
+  "section_break_3vktf",
+  "available_quantity",
+  "column_break_mjonb",
+  "actual_required_quantity",
+  "column_break_2ouji",
+  "quantity",
+  "column_break_v05zz",
+  "return_quantity",
+  "section_break_gfqnk",
+  "source_warehouse",
+  "target_warehouse",
+  "column_break_ajzxm",
+  "is_finished_item",
+  "is_supply_by_supplier",
+  "section_break_vqqme",
+  "total_amount",
+  "reference_id"
+ ],
+ "fields": [
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "item Code",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "item_code.item_name",
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "item Name"
+  },
+  {
+   "fieldname": "quantity",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Quantity",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "available_quantity",
+   "fieldtype": "Float",
+   "label": "Available Quantity",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "return_quantity",
+   "fieldtype": "Float",
+   "label": "Return Quantity",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_warehouse",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Source Warehouse",
+   "options": "Warehouse",
+   "reqd": 1
+  },
+  {
+   "fieldname": "target_warehouse",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Target Warehouse",
+   "options": "Warehouse",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "item_code.stock_uom",
+   "fieldname": "uom",
+   "fieldtype": "Link",
+   "label": "UOM",
+   "options": "UOM"
+  },
+  {
+   "fieldname": "rate",
+   "fieldtype": "Float",
+   "label": "Rate",
+   "precision": "2"
+  },
+  {
+   "fieldname": "total_amount",
+   "fieldtype": "Float",
+   "label": "Total Amount",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_ywr5a",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_6o0oz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_ojj54",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_3vktf",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_gfqnk",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_mjonb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_v05zz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_ajzxm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_vqqme",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "reference_id",
+   "fieldtype": "Link",
+   "label": "Reference ID",
+   "options": "Outsourcing Job Work",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_supply_by_supplier",
+   "fieldtype": "Check",
+   "label": "Is Supply By Supplier"
+  },
+  {
+   "fieldname": "actual_required_quantity",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Actual Required Quantity ",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_2ouji",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_finished_item",
+   "fieldtype": "Check",
+   "label": "Is Finished Item",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-11-11 16:15:47.850930",
+ "modified_by": "Administrator",
+ "module": "Outsourcing JobWork",
+ "name": "Outsource Job Work Details",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include outsourcing_jobwork *.css
+recursive-include outsourcing_jobwork *.csv
+recursive-include outsourcing_jobwork *.html
+recursive-include outsourcing_jobwork *.ico
+recursive-include outsourcing_jobwork *.js
+recursive-include outsourcing_jobwork *.json
+recursive-include outsourcing_jobwork *.md
+recursive-include outsourcing_jobwork *.png
+recursive-include outsourcing_jobwork *.py
+recursive-include outsourcing_jobwork *.svg
+recursive-include outsourcing_jobwork *.txt
+recursive-exclude outsourcing_jobwork *.pyc

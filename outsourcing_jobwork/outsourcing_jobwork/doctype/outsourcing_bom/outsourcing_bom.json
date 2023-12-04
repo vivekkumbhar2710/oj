@@ -1,0 +1,88 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:finish_item_code",
+ "creation": "2023-11-10 14:18:37.265570",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "finish_item_code",
+  "column_break_2gmnq",
+  "finish_item_name",
+  "column_break_vdjyo",
+  "company",
+  "section_break_7jkkg",
+  "outsourcing_bom_details"
+ ],
+ "fields": [
+  {
+   "fieldname": "finish_item_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Finish Item Code",
+   "options": "Item",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fetch_from": "finish_item_code.item_name",
+   "fieldname": "finish_item_name",
+   "fieldtype": "Data",
+   "label": "Finish Item Name"
+  },
+  {
+   "fieldname": "column_break_2gmnq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_7jkkg",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "outsourcing_bom_details",
+   "fieldtype": "Table",
+   "label": "Outsourcing BOM Details",
+   "options": "Outsourcing BOM Details",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_vdjyo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-11-10 15:00:50.120852",
+ "modified_by": "Administrator",
+ "module": "Outsourcing JobWork",
+ "name": "Outsourcing BOM",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "search_fields": "finish_item_name",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
