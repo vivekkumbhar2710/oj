@@ -224,7 +224,12 @@ fixtures = [
         "filters": [
             ["name", "=", "Kg"],
             # Add more filters as needed
-        ]
+        ],
+        "doctype": "Server Script",
+        "filters": [
+            ["name", "=", "UOM Update"],
+            # Add more filters as needed
+        ],
     },
     # Add more fixtures as needed
 ]
