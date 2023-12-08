@@ -215,3 +215,16 @@ app_license = "MIT"
 # auth_hooks = [
 #	"outsourcing_jobwork.auth.validate"
 # ]
+
+# hooks.py
+
+fixtures = [
+    {
+        "doctype": "UOM",
+        "filters": [
+            ["name", "=", "Kg"],
+            # Add more filters as needed
+        ]
+    },
+    # Add more fixtures as needed
+]

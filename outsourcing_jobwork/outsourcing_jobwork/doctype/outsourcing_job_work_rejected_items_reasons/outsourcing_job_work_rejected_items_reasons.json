@@ -19,7 +19,11 @@
   "column_break_s3ilg",
   "quantity",
   "section_break_rgj06",
-  "reference_id"
+  "reference_id",
+  "column_break_nlxvm",
+  "weight_per_unit",
+  "column_break_uzmnh",
+  "total_rejected_weight"
  ],
  "fields": [
   {
@@ -100,11 +104,31 @@
   {
    "fieldname": "section_break_rgj06",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_nlxvm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "weight_per_unit",
+   "fieldtype": "Float",
+   "label": "Weight Per Unit",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_uzmnh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_rejected_weight",
+   "fieldtype": "Float",
+   "label": "Total Rejected Weight",
+   "precision": "2"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2023-12-01 18:44:16.175169",
+ "modified": "2023-12-05 16:07:14.466013",
  "modified_by": "Administrator",
  "module": "Outsourcing JobWork",
  "name": "Outsourcing Job Work Rejected Items Reasons",

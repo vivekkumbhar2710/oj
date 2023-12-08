@@ -3,14 +3,20 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.utils import get_link_to_form
 
 class OutsourcingJobWork(Document):
 	def before_save(self):
+		# self.get_tax_data()
 		self.validate_ojwd()
 		self.finish_total_quentity_calculate()
 		self.validate_rejected_items_reasons()
 		self.total_quantity = self.calculating_total('outsource_job_work_details','quantity')
 		self.total_amount = self.calculating_total('outsource_job_work_details','total_amount')
+		if self.finished_item_code and self.production_quantity:
+			weight_per_unit = self.item_weight_per_unit(self.finished_item_code)
+			self.weight_per_unit = weight_per_unit
+			self.total_finished_weight =  weight_per_unit * self.production_quantity
 
 	def before_submit(self):
 		if self.in_or_out == "OUT":
@@ -36,15 +42,19 @@ class OutsourcingJobWork(Document):
 		for d in self.get("outsourcing_job_work"):
 			OW = frappe.get_all('Outsourcing Job Work',
 				  								filters = {'name':d.outsourcing_job_work},
-												fields = ['finished_item_code','finished_item_name','production_quantity','production_done_quantity','target_warehouse'])
+												fields = ['finished_item_code','finished_item_name','production_quantity','production_done_quantity','target_warehouse','weight_per_unit','total_finished_weight'])
+			
 			for j in OW:
+				quantity = j.production_quantity - j.production_done_quantity
 				self.append("finished_item_outsource_job_work_details",{
 							'item_code': j.finished_item_code ,
 							'item_name': j.finished_item_name,
 							'source_warehouse': j.target_warehouse ,
 							'target_warehouse': self.target_warehouse,
-							'actual_required_quantity':j.production_quantity - j.production_done_quantity,
-							'quantity': j.production_quantity - j.production_done_quantity,
+							'actual_required_quantity': quantity,
+							'quantity': quantity,
+							'weight_per_unit':j.weight_per_unit,
+							'total_finished_weight': j.weight_per_unit * quantity,
 							'reference_id': d.outsourcing_job_work,
 							'is_finished_item': True,
 							'cr_casting_rejection':0,
@@ -67,37 +77,23 @@ class OutsourcingJobWork(Document):
 
 					doc = frappe.get_all("Outsourcing BOM Details",
 									filters = {'parent':f.item_code},
-									fields = ['item_code','item_name','required_quantity',])
+									fields = ['item_code','item_name','required_quantity','weight_per_unit'])
 					for d in doc:
+						quantity =d.required_quantity * f.quantity
 						self.append("outsource_job_work_details",{
 									'item_code': d.item_code ,
 									'item_name': d.item_name,
 									'source_warehouse': self.source_warehouse if self.source_warehouse else f.source_warehouse,
 									'target_warehouse': self.target_warehouse ,
-									'quantity': d.required_quantity * f.quantity,
-									'actual_required_quantity':d.required_quantity * f.quantity,
+									'quantity': quantity,
+									'actual_required_quantity':quantity,
+									'weight_per_unit': d.weight_per_unit ,
+									'total_required_weight': d.weight_per_unit * quantity,
 									'reference_id': f.reference_id
 								},),
 
 			self.finish_total_quentity_calculate()
 					
-					# OJWD = frappe.get_all('Outsource Job Work Details',
-					# 										filters = {'parent':f.reference_id},
-					# 										fields = ['item_code','item_name','rate','quantity','target_warehouse','return_quantity']) 
-					# production_quantity = frappe.get_value("Outsourcing Job Work", d.outsourcing_job_work ,"production_quantity")
-					# production_done_quantity = frappe.get_value("Outsourcing Job Work", d.outsourcing_job_work ,"production_done_quantity")
-					# multiplication_factor = (production_quantity - production_done_quantity)
-					# for i in OJWD:
-					# 	self.append("outsource_job_work_details",{
-					# 				'item_code': i.item_code ,
-					# 				'item_name': i.item_name,
-					# 				'rate': i.rate,
-					# 				'source_warehouse': i.target_warehouse ,
-					# 				'actual_required_quantity':i.quantity ,
-					# 				'quantity': (i.quantity -i.return_quantity) ,
-					# 				'reference_id': d.outsourcing_job_work,
-					# 			},),
-
 
 	@frappe.whitelist()
 	def update_finished_item(self):
@@ -195,15 +191,18 @@ class OutsourcingJobWork(Document):
 		if self.finished_item_code and self.production_quantity:
 			doc = frappe.get_all("Outsourcing BOM Details",
 									filters = {'parent':self.finished_item_code},
-									fields = ['item_code','item_name','required_quantity',])
+									fields = ['item_code','item_name','required_quantity','weight_per_unit',])
 			for d in doc:
+				quantity = d.required_quantity * self.production_quantity
 				self.append("outsource_job_work_details",{
 							'item_code': d.item_code ,
 							'item_name': d.item_name,
 							'source_warehouse': self.source_warehouse ,
 							'target_warehouse': self.target_warehouse,
-							'quantity': d.required_quantity * self.production_quantity,
-							'actual_required_quantity':d.required_quantity * self.production_quantity,
+							'weight_per_unit':d.weight_per_unit,
+							'total_required_weight': d.weight_per_unit * quantity,
+							'quantity': quantity,
+							'actual_required_quantity':quantity,
 						},),
 	
 	@frappe.whitelist()
@@ -248,6 +247,7 @@ class OutsourcingJobWork(Document):
 	def finish_total_quentity_calculate(self):
 		for j in self.get("finished_item_outsource_job_work_details"):
 			j.total_quantity = j.quantity + j.cr_casting_rejection + j.mr_machine_rejection + j.rw_rework
+			j.total_finished_weight = j.weight_per_unit * j.quantity
 
 			if j.total_quantity > j.actual_required_quantity:
 				frappe.throw(f'Total Quantity For Item {j.item_code}-{j.item_name} is Should Not Be Greater Than Actual Required Quantity ')
@@ -263,6 +263,8 @@ class OutsourcingJobWork(Document):
 							'reference_id': x.reference_id,
 							'rejection_type': "CR (Casting Rejection)",
 							'quantity': x.cr_casting_rejection,
+							'weight_per_unit': x.weight_per_unit,
+							'total_rejected_weight': x.weight_per_unit * x.cr_casting_rejection,
 							'target_warehouse':'',
 						},),
 			if x.mr_machine_rejection:
@@ -272,6 +274,8 @@ class OutsourcingJobWork(Document):
 							'reference_id': x.reference_id,
 							'rejection_type': "MR (Machine Rejection)",
 							'quantity': x.mr_machine_rejection,
+							'weight_per_unit': x.weight_per_unit,
+							'total_rejected_weight': x.weight_per_unit * x.mr_machine_rejection,
 							'target_warehouse':'',
 						},),
 			if x.rw_rework:
@@ -281,6 +285,8 @@ class OutsourcingJobWork(Document):
 							'reference_id': x.reference_id,
 							'rejection_type': "RW (Rework)",
 							'quantity': x.rw_rework,
+							'weight_per_unit': x.weight_per_unit,
+							'total_rejected_weight': x.weight_per_unit * x.rw_rework,
 							'target_warehouse':'',
 						},),
 
@@ -306,8 +312,25 @@ class OutsourcingJobWork(Document):
 					total_rw = total_rw + r.quantity
 				if total_rw != x.rw_rework:
 					frappe.throw('Invalid Rejection')
-				
 
+	@frappe.whitelist()
+	def item_weight_per_unit(self , item_code ):
+		item_uom = frappe.get_value("Item",item_code,"stock_uom")
+		if item_uom == 'Kg':
+			item_weight = frappe.get_all("Item",item_code,"weight")
+		else:
+			production_uom_definition = frappe.get_all("Production UOM Definition",
+																				filters = {"parent":item_code,"uom": 'Kg'},
+																				fields = ["value_per_unit"])
+			if production_uom_definition:
+				for k in production_uom_definition:
+					item_weight= k.value_per_unit
+			else:
+				frappe.throw(f'Please Set "Production UOM Definition" For Item {get_link_to_form("Item",item_code)} of UOM "Kg" ')
+		if item_weight:
+			return  item_weight
+		else:
+			return 0
 
 
 
@@ -402,4 +425,75 @@ class OutsourcingJobWork(Document):
 				se.insert()
 				se.save()
 				se.submit()
+
+
+
+	def get_tax_data(self):
+		for d in self.get("outsource_job_work_details"):
+			p = "GST 18% - AFPL"
+			value = self.get_tax_details(d.item_code , 10 , 10 , p)
+			if value:
+				frappe.msgprint(str(value))
+
+
+
+	def get_tax_details(self,item_name, item_rate, item_quantity, tax_template):
+    # Create a temporary sales invoice document
+		doc = frappe.new_doc('Sales Invoice')
+		doc.customer='Sana Patel'
+		doc.append('items', {
+			'item_code': item_name,
+			'rate': item_rate,
+			'qty': item_quantity,
+			'item_tax_template': tax_template,
+			'unit4':"Prod-14-11-23-00142",
+		})
+		doc.taxes_and_charges = "Output GST In-state - AFPL"
+		doc.company = "Alpha Foundries Pvt. Ltd."
+		doc.posting_date = self.posting_date
+		doc.due_date = self.posting_date
+		# Calculate taxes and totals
+		doc.run_method('calculate_taxes_and_totals')
+
+		# Get all tax details from the child table
+		tax_details = []
+		# frappe.throw(str(doc.taxes))
+		for tax in doc.taxes:
+			tax_detail = {
+				'item_code': item_name,
+				'tax_template': tax.tax_template,
+				'tax_amount': tax.tax_amount,
+				'taxable_value': tax.taxable_value,
+				# Add other relevant fields as needed
+			}
+			tax_details.append(tax_detail)
+
+		# return tax_details
+		doc.save()
+		# doc.run_method('calculate_taxes_and_totals')
+		try:
+			doc.run_method('calculate_taxes_and_totals')
+		except Exception as e:
+			frappe.msgprint(f"Error calculating taxes: {str(e)}")
+		# frappe.throw(str(doc.taxes))
+
+
+
+# ============================================================================================================================================================
+					# OJWD = frappe.get_all('Outsource Job Work Details',
+					# 										filters = {'parent':f.reference_id},
+					# 										fields = ['item_code','item_name','rate','quantity','target_warehouse','return_quantity']) 
+					# production_quantity = frappe.get_value("Outsourcing Job Work", d.outsourcing_job_work ,"production_quantity")
+					# production_done_quantity = frappe.get_value("Outsourcing Job Work", d.outsourcing_job_work ,"production_done_quantity")
+					# multiplication_factor = (production_quantity - production_done_quantity)
+					# for i in OJWD:
+					# 	self.append("outsource_job_work_details",{
+					# 				'item_code': i.item_code ,
+					# 				'item_name': i.item_name,
+					# 				'rate': i.rate,
+					# 				'source_warehouse': i.target_warehouse ,
+					# 				'actual_required_quantity':i.quantity ,
+					# 				'quantity': (i.quantity -i.return_quantity) ,
+					# 				'reference_id': d.outsourcing_job_work,
+					# 			},),
 
