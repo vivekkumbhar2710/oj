@@ -1,11 +1,6 @@
 // Copyright (c) 2023, Quantbit Technologies Pvt ltd and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on('Outsourcing Job Work', {
-	// refresh: function(frm) {
-
-	// }
-});
 
 frappe.ui.form.on('Outsourcing Job Work', {
     refresh: function(frm) {
@@ -22,6 +17,8 @@ frappe.ui.form.on('Outsourcing Job Work', {
         frm.fields_dict['finished_item_code'].$input.css('background-color', '#D2E9FB');
         frm.fields_dict['finished_item_name'].$input.css('background-color', '#D2E9FB');
         frm.fields_dict['production_quantity'].$input.css('background-color', '#D2E9FB');
+        frm.fields_dict['linking_option'].$input.css('background-color', '#D2E9FB');
+        frm.fields_dict['select_link'].$input.css('background-color', '#D2E9FB');
     }
 });
 
@@ -87,12 +84,19 @@ frappe.ui.form.on('Outsourcing Job Work', {
 
             frm.clear_table("finished_item_outsource_job_work_details");
             frm.refresh_field('finished_item_outsource_job_work_details');
-    
+
+            frm.clear_table("outsource_as_it_is_item");
+            frm.refresh_field('outsource_as_it_is_item');
+
             frm.call({
                 method:'in_outsouring_data',
                 doc:frm.doc,
             })
-	
+            
+            frm.call({
+                method:'get_as_it_is_item',
+                doc:frm.doc,
+            })
     }
 });
 
@@ -153,6 +157,44 @@ frappe.ui.form.on('Outsourcing Job Work', {
         });
     }
 });
+
+frappe.ui.form.on("Outsourcing Job Work", {
+    setup: function(frm) {
+            frm.set_query("linking_option", function() { // Replace with the name of the link field
+                return {
+                    filters: [
+                        ["DocType", "name", 'in', ["Blanket Order","Purchase Order"]] // Replace with your actual filter criteria
+                    ]
+                };
+            });
+        }
+    });
+
+    
+    frappe.ui.form.on("Outsourcing Job Work", {
+        setup: function (frm) {
+            frm.set_query("select_link", function () { // Replace with the name of the link field
+                if (frm.doc.linking_option == "Blanket Order") {
+                    return {
+    
+                        filters: [
+                            ["Blanket Order", "blanket_order_type", '=', 'Purchasing'],
+                            ["Blanket Order", "supplier", '=', frm.doc.supplier_id] // Replace with your actual filter criteria
+                        ]
+                    };
+                }
+                if (frm.doc.linking_option == "Purchase Order") {
+                    return {
+    
+                        filters: [
+                            ["Purchase Order", "supplier", '=', frm.doc.supplier_id] // Replace with your actual filter criteria
+                        ]
+                    };
+                } 
+            });
+        }
+    });
+
 
 
 // ============================================================= Outsource Job Work Details =================================================  
@@ -218,5 +260,74 @@ frappe.ui.form.on('Finished Item Outsource Job Work Details', {
 		})
         
 
+    }
+});
+
+
+// ============================================================= Program for Outsource As It Is Item Table =================================================  
+
+frappe.ui.form.on('Outsourcing Job Work', {
+	refresh: function(frm) {
+        frm.fields_dict['outsource_as_it_is_item'].toggle(false);
+        frm.refresh_fields();
+        
+        frm.fields_dict['target_warehouse_for_as_it_is_item'].toggle(false);
+        frm.refresh_fields();
+    }
+});
+frappe.ui.form.on('Finished Item Outsource Job Work Details', {
+	as_it_is: function(frm) {
+        frm.fields_dict['outsource_as_it_is_item'].toggle(true);
+        frm.refresh_fields();
+        frm.fields_dict['target_warehouse_for_as_it_is_item'].toggle(true);
+        frm.refresh_fields();
+        var qty_sum=0
+        var flag=true
+        frm.doc.finished_item_outsource_job_work_details.forEach(function(row) {
+            qty_sum=row.quantity+row.cr_casting_rejection+row.mr_machine_rejection+row.rw_rework+row.as_it_is
+            if(qty_sum>parseFloat(row.actual_required_quantity))
+            {
+                
+                frappe.throw(`Total Quantity For Item ${row.item_code}-${row.item_name} is Should Not Be Greater Than Actual Required Quantity `)
+            }
+            else
+            {
+                if(parseFloat(row.as_it_is)!=parseFloat(row.actual_required_quantity))
+                {
+                    flag=false
+                }
+                row.total_quantity=qty_sum
+                row.total_finished_weight=row.weight_per_unit * row.quantity
+            }
+        });
+        if(flag)
+        {
+            frm.fields_dict['rejected_items_reasons'].toggle(false);
+            frm.refresh_fields();
+            frm.fields_dict['outsource_job_work_details'].toggle(false);
+            frm.refresh_fields();
+            frm.fields_dict['get_rejections'].toggle(false);
+            frm.refresh_fields();
+            frm.doc.total_quantity=null
+            frm.refresh_fields();
+            frm.doc.total_amount=null
+            frm.refresh_fields();
+        }
+    }
+});
+frappe.ui.form.on('Finished Item Outsource Job Work Details', {
+    as_it_is:function(frm){
+        frm.call({
+            method:"get_as_it_is_item",
+            doc:frm.doc
+        });
+    }
+})
+frappe.ui.form.on('Outsourcing Job Work', {
+    target_warehouse_for_as_it_is_item: function(frm) {
+        frm.call({
+			method:'set_target_warehouse_for_as_it_is',
+			doc:frm.doc,
+		})
     }
 });

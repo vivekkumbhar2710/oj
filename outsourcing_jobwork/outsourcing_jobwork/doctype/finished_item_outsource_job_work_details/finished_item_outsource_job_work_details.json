@@ -19,6 +19,7 @@
   "column_break_mjonb",
   "return_quantity",
   "actual_required_quantity",
+  "as_it_is",
   "column_break_2ouji",
   "quantity",
   "weight_per_unit",
@@ -209,13 +210,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "total_quantity",
-   "fieldtype": "Data",
-   "label": "Total Quantity",
-   "read_only": 1,
-   "reqd": 1
-  },
-  {
    "fieldname": "weight_per_unit",
    "fieldtype": "Float",
    "label": "Weight Per Unit",
@@ -226,12 +220,25 @@
    "fieldtype": "Float",
    "label": "Total Finished Weight",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "as_it_is",
+   "fieldtype": "Float",
+   "label": "As It is",
+   "precision": "2"
+  },
+  {
+   "fieldname": "total_quantity",
+   "fieldtype": "Float",
+   "label": "total_quantity",
+   "precision": "2"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-12-05 11:12:01.806059",
+ "modified": "2023-12-11 17:45:45.972566",
  "modified_by": "Administrator",
  "module": "Outsourcing JobWork",
  "name": "Finished Item Outsource Job Work Details",
