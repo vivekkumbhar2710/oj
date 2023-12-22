@@ -644,14 +644,13 @@ class OutsourcingJobWork(Document):
 	#To Calculate Total Tax Amount 
 	@frappe.whitelist()
 	def get_tax_amount(self):
-		pass
-		# if(len(self.get("taxes_and_charges"))==2):
-		# 	for i in self.get("taxes_and_charges"):
-		# 		doc=frappe.get_value("Item Tax Template Detail",{"parent":i.})
-		# 	# frappe.msgprint("Two")
-		# else:
-		# 	pass
-		# 	# frappe.msgprint("One")
+		if(len(self.get("taxes_and_charges"))==2):
+			for i in self.get("taxes_and_charges"):
+				doc=frappe.get_value("Item Tax Template Detail",{"parent":i.tax_template})
+			# frappe.msgprint("Two")
+		else:
+			pass
+			# frappe.msgprint("One")
 
 #*********************************************************************************** Program end***************************************************
 # ============================================================================================================================================================
