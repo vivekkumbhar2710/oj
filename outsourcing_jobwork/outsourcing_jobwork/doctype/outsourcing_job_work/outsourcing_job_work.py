@@ -10,8 +10,8 @@ class OutsourcingJobWork(Document):
 		self.validate_ojwd()
 		self.finish_total_quentity_calculate()
 		self.validate_rejected_items_reasons()
-		self.total_quantity = self.calculating_total('outsource_job_work_details','quantity')
-		self.total_amount = self.calculating_total('outsource_job_work_details','total_amount')
+		# self.total_quantity = self.calculating_total('outsource_job_work_details','quantity')
+		# self.total_amount = self.calculating_total('outsource_job_work_details','total_amount')
 		if self.finished_item_code and self.production_quantity:
 			weight_per_unit = self.item_weight_per_unit(self.finished_item_code)
 			self.weight_per_unit = weight_per_unit
@@ -83,6 +83,9 @@ class OutsourcingJobWork(Document):
 									fields = ['item_code','item_name','required_quantity','weight_per_unit'])
 					for d in doc:
 						quantity =d.required_quantity * f.quantity
+						warehouse=self.source_warehouse if self.source_warehouse else f.source_warehouse,
+						rate=self.get_item_rate(d.item_code,warehouse)
+						tax_template=self.get_tax_temp_for_items(d.item_code)
 						self.append("outsource_job_work_details",{
 									'item_code': d.item_code ,
 									'item_name': d.item_name,
@@ -92,9 +95,16 @@ class OutsourcingJobWork(Document):
 									'actual_required_quantity':quantity,
 									'weight_per_unit': d.weight_per_unit ,
 									'total_required_weight': d.weight_per_unit * quantity,
-									'reference_id': f.reference_id
+									'reference_id': f.reference_id,
+									'rate':rate,
+									'tax_template':tax_template,
+									'total_amount':round(rate*quantity,2) if rate and quantity else 0
 								},),
-
+					self.total_quantity = self.calculating_total('outsource_job_work_details','quantity')
+					self.total_amount = self.calculating_total('outsource_job_work_details','total_amount')
+					self.get("taxes_and_charges").clear()
+					self.get_in_out_tax_template()
+					self.get_tax_amount()
 			self.finish_total_quentity_calculate()
 					
 
@@ -139,7 +149,14 @@ class OutsourcingJobWork(Document):
 		for i in self.get("outsource_job_work_details"):
 			if self.source_warehouse:
 				i.source_warehouse = self.source_warehouse
-
+				rate=self.get_item_rate(i.item_code, self.source_warehouse)
+				i.rate=rate if rate else 0
+				i.total_amount=round(rate*i.quantity,2) if rate and i.quantity else 0
+		self.total_quantity = self.calculating_total('outsource_job_work_details','quantity')
+		self.total_amount = self.calculating_total('outsource_job_work_details','total_amount')
+		self.get("taxes_and_charges").clear()
+		self.get_in_out_tax_template()
+		self.get_tax_amount()
 		for j in self.get("finished_item_outsource_job_work_details"):
 			if self.source_warehouse:
 				j.source_warehouse = self.source_warehouse
@@ -161,10 +178,16 @@ class OutsourcingJobWork(Document):
 		for i in self.get("outsource_job_work_details"):
 			if not i.source_warehouse:
 				i.source_warehouse = self.source_warehouse
+				i.rate=self.get_item_rate(i.item_code, self.source_warehouse)
+				i.total_amount=round(i.rate*i.quantity,2) if i.rate and i.quantity else 0
 
 			if not i.target_warehouse:
 				i.target_warehouse = self.target_warehouse
-
+		self.total_quantity = self.calculating_total('outsource_job_work_details','quantity')
+		self.total_amount = self.calculating_total('outsource_job_work_details','total_amount')
+		self.get("taxes_and_charges").clear()
+		self.get_in_out_tax_template()
+		self.get_tax_amount()
 
 
 	@frappe.whitelist()
@@ -197,6 +220,8 @@ class OutsourcingJobWork(Document):
 									fields = ['item_code','item_name','required_quantity','weight_per_unit',])
 			for d in doc:
 				quantity = d.required_quantity * self.production_quantity
+				rate=self.get_item_rate(d.item_code, self.source_warehouse)
+				tax_template=self.get_tax_temp_for_items(d.item_code)
 				self.append("outsource_job_work_details",{
 							'item_code': d.item_code ,
 							'item_name': d.item_name,
@@ -206,7 +231,15 @@ class OutsourcingJobWork(Document):
 							'total_required_weight': d.weight_per_unit * quantity,
 							'quantity': quantity,
 							'actual_required_quantity':quantity,
+							'rate':rate,
+							'tax_template':tax_template,
+							'total_amount':round(rate*quantity,2) if rate and quantity else 0
 						},),
+			self.total_quantity = self.calculating_total('outsource_job_work_details','quantity')
+			self.total_amount = self.calculating_total('outsource_job_work_details','total_amount')
+			self.get("taxes_and_charges").clear()
+			self.get_in_out_tax_template()
+			self.get_tax_amount()
 	
 	@frappe.whitelist()
 	def validate_ojwd(self):
@@ -496,7 +529,129 @@ class OutsourcingJobWork(Document):
 								},),
 		self.finish_total_quentity_calculate()
 	
+ 
+	#Program for get rate in Outsource Job Work Details child table 
+	@frappe.whitelist()
+	def get_item_rate(self,item_code=None,warehouse=None,item_index=None):
+		count=0
+		item=""
+		source_warehouse=""
+		if(item_index or item_index==0):
+			count+=1
+		if(count):
+			item=str(self.get("outsource_job_work_details")[item_index].item_code)
+			source_warehouse=str(self.get("outsource_job_work_details")[item_index].source_warehouse)
+		else:
+			item=item_code
+			source_warehouse=warehouse
+		item_rate=frappe.get_value("Bin",{"item_code":item,"warehouse":source_warehouse},'valuation_rate')
+		if(count==0):
+			return item_rate
+		else:
+			self.get("outsource_job_work_details")[item_index].rate=item_rate
+			quantity=self.get("outsource_job_work_details")[item_index].quantity
+			if(item_rate):
+				self.get("outsource_job_work_details")[item_index].total_amount=round(item_rate*quantity ,2)
+			else:
+				self.get("outsource_job_work_details")[item_index].total_amount=0
+			self.total_quantity = self.calculating_total('outsource_job_work_details','quantity')
+			self.total_amount = self.calculating_total('outsource_job_work_details','total_amount')
+			self.get("taxes_and_charges").clear()
+			self.get_in_out_tax_template()
+			self.get_tax_amount()
+   
+	#To get Company Address and supplier address
+	@frappe.whitelist()
+	def get_company_address(self):
+		company_name=frappe.get_value("Dynamic Link",{"link_doctype":"Company","link_name":self.company},"parent")
+		self.company_address_name=company_name
+		doc=frappe.get_doc("Address",company_name)
+		self.company_gstin=doc.gstin
+		self.place_of_supply_for_company=f"{doc.gst_state_number}-{doc.state}"
+		temp_str = f"{doc.address_line1}\n" if doc.address_line1 else ""
+		temp_str += f"{doc.address_line2}\n" if doc.address_line2 else ""
+		temp_str += f"{doc.city}\n" if doc.city else ""
+		temp_str += f"{doc.state} " if doc.state else ""
+		temp_str += f"State Code:{doc.gst_state_number}\n" if doc.gst_state_number else ""
+		temp_str += f"Pin Code:{doc.pincode}\n" if doc.pincode else ""
+		temp_str += f"{doc.country}\n" if doc.country else ""
+		temp_str += f"Phone:{doc.phone}\n" if doc.phone else ""
+		temp_str += f"Email:{doc.email_id}\n" if doc.email_id else ""
+		temp_str += f"GSTIN:{doc.gstin}\n" if doc.gstin else ""
+		self.company_address=temp_str
+  
+  
+	@frappe.whitelist()
+	def get_supplier_address(self):
+		supplier_name=frappe.get_value("Dynamic Link",{"link_doctype":"Supplier","link_name":self.supplier_id},"parent")
+		if(supplier_name):
+			self.supplier_address=supplier_name
+			doc=frappe.get_doc("Address",supplier_name)
+			self.billing_address_gstin=doc.gstin
+			self.gst_category=doc.gst_category
+			self.territory=doc.country
+			self.place_of_supply=f"{doc.gst_state_number}-{doc.state}"
+			temp_str = f"{doc.address_line1}\n" if doc.address_line1 else ""
+			temp_str += f"{doc.address_line2}\n" if doc.address_line2 else ""
+			temp_str += f"{doc.city}\n" if doc.city else ""
+			temp_str += f"{doc.state} " if doc.state else ""
+			temp_str += f"State Code:{doc.gst_state_number}\n" if doc.gst_state_number else ""
+			temp_str += f"Pin Code:{doc.pincode}\n" if doc.pincode else ""
+			temp_str += f"{doc.country}\n" if doc.country else ""
+			temp_str += f"Phone:{doc.phone}\n" if doc.phone else ""
+			temp_str += f"Email:{doc.email_id}\n" if doc.email_id else ""
+			temp_str += f"GSTIN:{doc.gstin}\n" if doc.gstin else ""
+			self.address=temp_str
+   
+   #To get tax Template to respective item in Outsource Job Work Details child table 
+	@frappe.whitelist()
+	def get_tax_temp_for_items(self,item_code):
+		query = """SELECT item_tax_template FROM `tabItem Tax` WHERE parent=%s"""
+		doc = frappe.db.sql(query, (item_code,), as_dict=True)
+		if(doc):
+			for d in doc:
+				tepmlate_doc=frappe.get_value("Item Tax Template",{"name":d.item_tax_template,"company":self.company},"name")
+				if(tepmlate_doc):
+					return tepmlate_doc
+	
+ 
+	#To get in and out tax template for all items on parent doctype
+	@frappe.whitelist()
+	def get_in_out_tax_template(self):
+		if(self.place_of_supply and self.place_of_supply_for_company):
+			count=0
+			if(self.place_of_supply==self.place_of_supply_for_company):
+				count+=1
+			template_name=frappe.get_value("Sales Taxes and Charges Template",{"tax_category":"In-State" if(count) else "Out-State","company":self.company},"name")
+			self.sales_taxes_and_charges_template=template_name
+			template_child_table=frappe.get_all("Sales Taxes and Charges",{"parent":self.sales_taxes_and_charges_template},["charge_type","account_head","rate","tax_amount","total","description","cost_center"])
+			for i in template_child_table:
+				self.append("taxes_and_charges",{
+					"charge_type":i.charge_type,
+					"account_head":i.account_head,
+					"rate":i.rate,
+					"tax_amount":i.tax_amount,
+					"total":i.total,
+					"description":i.description,
+					"cost_center":i.cost_center
+				})
+		else:
+			if(self.place_of_supply):
+				frappe.throw(f"Please add the address for Company {self.company}")
+			else:
+				frappe.throw(f"Please add the address for Supplier {self.supplier_id}")
 
+	#To Calculate Total Tax Amount 
+	@frappe.whitelist()
+	def get_tax_amount(self):
+		pass
+		# if(len(self.get("taxes_and_charges"))==2):
+		# 	for i in self.get("taxes_and_charges"):
+		# 		doc=frappe.get_value("Item Tax Template Detail",{"parent":i.})
+		# 	# frappe.msgprint("Two")
+		# else:
+		# 	pass
+		# 	# frappe.msgprint("One")
 
 #*********************************************************************************** Program end***************************************************
 # ============================================================================================================================================================

@@ -27,6 +27,7 @@
   "finished_item_code",
   "column_break_ro1qm",
   "finished_item_name",
+  "finished_item_rate",
   "column_break_1hqsm",
   "production_quantity",
   "weight_per_unit",
@@ -45,12 +46,29 @@
   "column_break_jcdnv",
   "total_amount",
   "section_break_gvlqu",
+  "sales_taxes_and_charges_template",
   "taxes_and_charges",
   "section_break_t5bat",
   "total_taxes_and_charges",
   "column_break_fcpr0",
   "process_status",
-  "amended_from"
+  "amended_from",
+  "other_details_tab",
+  "billing_address_section",
+  "supplier_address",
+  "address",
+  "billing_address_gstin",
+  "gst_category",
+  "place_of_supply",
+  "column_break_hcmyz",
+  "contact_person",
+  "territory",
+  "company_address_section",
+  "company_address_name",
+  "company_gstin",
+  "place_of_supply_for_company",
+  "column_break_qryfr",
+  "company_address"
  ],
  "fields": [
   {
@@ -321,6 +339,101 @@
    "fieldtype": "Link",
    "label": "Target Warehouse For As It Is Items",
    "options": "Warehouse"
+  },
+  {
+   "depends_on": "eval:doc.in_or_out=='OUT';",
+   "fieldname": "finished_item_rate",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Finished Item Rate",
+   "precision": "2"
+  },
+  {
+   "fieldname": "other_details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Address Details"
+  },
+  {
+   "fieldname": "company_address_section",
+   "fieldtype": "Section Break",
+   "label": "Company Address"
+  },
+  {
+   "fieldname": "company_address_name",
+   "fieldtype": "Link",
+   "label": "Company Address Name",
+   "options": "Address"
+  },
+  {
+   "fieldname": "company_gstin",
+   "fieldtype": "Data",
+   "label": "Company GSTIN"
+  },
+  {
+   "fieldname": "column_break_qryfr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "company_address",
+   "fieldtype": "Small Text",
+   "label": "Company Address"
+  },
+  {
+   "fieldname": "billing_address_section",
+   "fieldtype": "Section Break",
+   "label": "Billing Address"
+  },
+  {
+   "fieldname": "supplier_address",
+   "fieldtype": "Link",
+   "label": "Supplier Address",
+   "options": "Address"
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Small Text",
+   "label": "Address"
+  },
+  {
+   "fieldname": "billing_address_gstin",
+   "fieldtype": "Data",
+   "label": "Billing Address GSTIN"
+  },
+  {
+   "fieldname": "gst_category",
+   "fieldtype": "Data",
+   "label": "GST Category"
+  },
+  {
+   "fieldname": "place_of_supply",
+   "fieldtype": "Data",
+   "label": "Place of Supply"
+  },
+  {
+   "fieldname": "column_break_hcmyz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "contact_person",
+   "fieldtype": "Data",
+   "label": "Contact Person"
+  },
+  {
+   "fieldname": "territory",
+   "fieldtype": "Data",
+   "label": "Territory"
+  },
+  {
+   "depends_on": "eval:doc.in_or_out=='IN' || doc.in_or_out=='OUT';",
+   "fieldname": "sales_taxes_and_charges_template",
+   "fieldtype": "Link",
+   "label": "Sales Taxes and Charges Template",
+   "options": "Sales Taxes and Charges Template"
+  },
+  {
+   "fieldname": "place_of_supply_for_company",
+   "fieldtype": "Data",
+   "label": "Place of Supply for Company"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -331,7 +444,7 @@
    "link_fieldname": "custom_outsourcing_job_work"
   }
  ],
- "modified": "2023-12-19 15:27:10.081097",
+ "modified": "2023-12-21 18:46:54.817026",
  "modified_by": "Administrator",
  "module": "Outsourcing JobWork",
  "name": "Outsourcing Job Work",

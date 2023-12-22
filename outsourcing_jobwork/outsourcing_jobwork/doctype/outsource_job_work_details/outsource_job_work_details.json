@@ -32,7 +32,9 @@
   "total_required_weight",
   "section_break_vqqme",
   "total_amount",
-  "reference_id"
+  "reference_id",
+  "column_break_bh9uc",
+  "tax_template"
  ],
  "fields": [
   {
@@ -195,12 +197,22 @@
    "label": "Total Required Weight",
    "precision": "2",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_bh9uc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tax_template",
+   "fieldtype": "Link",
+   "label": "Tax Template",
+   "options": "Item Tax Template"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-12-05 10:18:05.904965",
+ "modified": "2023-12-21 17:17:28.221450",
  "modified_by": "Administrator",
  "module": "Outsourcing JobWork",
  "name": "Outsource Job Work Details",

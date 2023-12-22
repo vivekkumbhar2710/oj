@@ -273,8 +273,68 @@ frappe.ui.form.on('Outsourcing Job Work', {
         
         frm.fields_dict['target_warehouse_for_as_it_is_item'].toggle(false);
         frm.refresh_fields();
+    },
+    target_warehouse_for_as_it_is_item: function(frm) {
+        frm.call({
+			method:'set_target_warehouse_for_as_it_is',
+			doc:frm.doc,
+		})
+    },
+    setup: function(frm) {
+        frm.call({
+			method:'get_company_address',
+			doc:frm.doc,
+		})
+    },
+    supplier_id: function(frm) {
+        frm.doc.supplier_address=""
+        frm.doc.address=""
+        frm.doc.billing_address_gstin=""
+        frm.doc.gst_category=""
+        frm.doc.place_of_supply=""
+        frm.doc.territory=""
+        frm.doc.contact_person=""
+        frm.call({
+			method:'get_supplier_address',
+			doc:frm.doc,
+		})
+    },
+    total_amount: function(frm) {
+        frm.clear_table("taxes_and_charges")
+        frm.call({
+			method:'get_in_out_tax_template',
+			doc:frm.doc,
+		})
     }
 });
+frappe.ui.form.on('Outsource Job Work Details', {
+    as_it_is:function(frm){
+        frm.call({
+            method:"get_as_it_is_item",
+            doc:frm.doc
+        });
+    },
+    source_warehouse: function(frm,cdt,cdn) {
+        let d = locals[cdt][cdn];
+        let table = frm.fields_dict['outsource_job_work_details'].grid;
+        let table_index = table.grid_rows.findIndex(row => row.doc === d);
+        frm.call({
+			method:'get_item_rate',
+			args: {
+                item_index: table_index
+            },
+            doc: frm.doc,
+		})
+        frm.doc.total_amount=frm.doc.rate*frm.doc.quantity
+    },
+    tax_template: function(frm) {
+        frm.call({
+			method:'get_tax_temp',
+			doc:frm.doc,
+		})
+    }
+});
+
 frappe.ui.form.on('Finished Item Outsource Job Work Details', {
 	as_it_is: function(frm) {
         frm.fields_dict['outsource_as_it_is_item'].toggle(true);
@@ -315,19 +375,58 @@ frappe.ui.form.on('Finished Item Outsource Job Work Details', {
         }
     }
 });
-frappe.ui.form.on('Finished Item Outsource Job Work Details', {
-    as_it_is:function(frm){
-        frm.call({
-            method:"get_as_it_is_item",
-            doc:frm.doc
-        });
-    }
-})
-frappe.ui.form.on('Outsourcing Job Work', {
-    target_warehouse_for_as_it_is_item: function(frm) {
-        frm.call({
-			method:'set_target_warehouse_for_as_it_is',
-			doc:frm.doc,
-		})
-    }
-});
+// frappe.ui.form.on('Finished Item Outsource Job Work Details', {
+//     as_it_is:function(frm){
+//         frm.call({
+//             method:"get_as_it_is_item",
+//             doc:frm.doc
+//         });
+//     }
+// })
+// frappe.ui.form.on('Outsourcing Job Work', {
+//     target_warehouse_for_as_it_is_item: function(frm) {
+//         frm.call({
+// 			method:'set_target_warehouse_for_as_it_is',
+// 			doc:frm.doc,
+// 		})
+//     }
+// });
+
+//Below code for to get item rate
+
+//Below code for to get compnay address
+// frappe.ui.form.on('Outsourcing Job Work', {
+//     setup: function(frm) {
+//         frm.call({
+// 			method:'get_company_address',
+// 			doc:frm.doc,
+// 		})
+//     }
+// });
+
+// frappe.ui.form.on('Outsourcing Job Work', {
+//     supplier_id: function(frm) {
+//         frm.call({
+// 			method:'get_supplier_address',
+// 			doc:frm.doc,
+// 		})
+//     }
+// });
+
+// frappe.ui.form.on('Outsource Job Work Details', {
+//     tax_template: function(frm) {
+//         frm.call({
+// 			method:'get_tax_temp',
+// 			doc:frm.doc,
+// 		})
+//     }
+// });
+
+// frappe.ui.form.on('Outsourcing Job Work', {
+//     total_amount: function(frm) {
+//         frm.call({
+// 			method:'get_in_out_tax_template',
+// 			doc:frm.doc,
+// 		})
+//     }
+// });
