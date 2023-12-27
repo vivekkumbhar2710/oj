@@ -533,35 +533,39 @@ class OutsourcingJobWork(Document):
 	#Program for get rate in Outsource Job Work Details child table 
 	@frappe.whitelist()
 	def get_item_rate(self,item_code=None,warehouse=None,item_index=None):
-		count=0
-		item=""
-		source_warehouse=""
-		if(item_index or item_index==0):
-			count+=1
-		if(count):
-			item=str(self.get("outsource_job_work_details")[item_index].item_code)
-			source_warehouse=str(self.get("outsource_job_work_details")[item_index].source_warehouse)
-		else:
-			item=item_code
-			source_warehouse=warehouse
-		item_rate=frappe.get_value("Bin",{"item_code":item,"warehouse":source_warehouse},'valuation_rate')
-		if(count==0):
-			return item_rate
-		else:
-			self.get("outsource_job_work_details")[item_index].rate=item_rate
-			quantity=self.get("outsource_job_work_details")[item_index].quantity
-			if(item_rate):
-				self.get("outsource_job_work_details")[item_index].total_amount=round(item_rate*quantity ,2)
+		if(self.in_or_out=="OUT"):
+			count=0
+			item=""
+			source_warehouse=""
+			if(item_index or item_index==0):
+				count+=1
+			if(count):
+				item=str(self.get("outsource_job_work_details")[item_index].item_code)
+				source_warehouse=str(self.get("outsource_job_work_details")[item_index].source_warehouse)
 			else:
-				self.get("outsource_job_work_details")[item_index].total_amount=0
-			self.total_quantity = self.calculating_total('outsource_job_work_details','quantity')
-			self.total_amount = self.calculating_total('outsource_job_work_details','total_amount')
-			self.get("taxes_and_charges").clear()
-			self.get_in_out_tax_template()
-			self.get_tax_amount()
+				item=item_code
+				source_warehouse=warehouse
+			item_rate=frappe.get_value("Bin",{"item_code":item,"warehouse":source_warehouse},'valuation_rate')
+			if(item_rate):
+				item_rate=round(item_rate,2)
+				if(count==0):
+					return item_rate
+				else:
+					self.get("outsource_job_work_details")[item_index].rate=round(item_rate,2)
+					quantity=self.get("outsource_job_work_details")[item_index].quantity
+					if(self.get("outsource_job_work_details")[item_index].rate):
+						self.get("outsource_job_work_details")[item_index].total_amount=round(item_rate*quantity ,2)
+					else:
+						self.get("outsource_job_work_details")[item_index].total_amount=0
+					self.total_quantity = self.calculating_total('outsource_job_work_details','quantity')
+					self.total_amount = self.calculating_total('outsource_job_work_details','total_amount')
+					self.get("taxes_and_charges").clear()
+					self.get_in_out_tax_template()
+					self.get_tax_amount()
    
 	#To get Company Address and supplier address
 	@frappe.whitelist()
+ 
 	def get_company_address(self):
 		company_name=frappe.get_value("Dynamic Link",{"link_doctype":"Company","link_name":self.company},"parent")
 		self.company_address_name=company_name
@@ -615,42 +619,77 @@ class OutsourcingJobWork(Document):
 					return tepmlate_doc
 	
  
-	#To get in and out tax template for all items on parent doctype
+	#To get in and out tax template for all items on parent doctype and append data to taxes_and_charges child table
 	@frappe.whitelist()
 	def get_in_out_tax_template(self):
-		if(self.place_of_supply and self.place_of_supply_for_company):
-			count=0
-			if(self.place_of_supply==self.place_of_supply_for_company):
-				count+=1
-			template_name=frappe.get_value("Sales Taxes and Charges Template",{"tax_category":"In-State" if(count) else "Out-State","company":self.company},"name")
-			self.sales_taxes_and_charges_template=template_name
-			template_child_table=frappe.get_all("Sales Taxes and Charges",{"parent":self.sales_taxes_and_charges_template},["charge_type","account_head","rate","tax_amount","total","description","cost_center"])
-			for i in template_child_table:
-				self.append("taxes_and_charges",{
-					"charge_type":i.charge_type,
-					"account_head":i.account_head,
-					"rate":i.rate,
-					"tax_amount":i.tax_amount,
-					"total":i.total,
-					"description":i.description,
-					"cost_center":i.cost_center
-				})
-		else:
-			if(self.place_of_supply):
-				frappe.throw(f"Please add the address for Company {self.company}")
-			else:
-				frappe.throw(f"Please add the address for Supplier {self.supplier_id}")
+		if(self.in_or_out=="OUT"):
+			if(self.billing_address_gstin):
+				if(self.place_of_supply and self.place_of_supply_for_company):
+					count=0
+					if(self.place_of_supply==self.place_of_supply_for_company):
+						count+=1
+					template_name=frappe.get_value("Sales Taxes and Charges Template",{"tax_category":"In-State" if(count) else "Out-State","company":self.company},"name")
+					self.sales_taxes_and_charges_template=template_name
+					template_child_table=frappe.get_all("Sales Taxes and Charges",{"parent":self.sales_taxes_and_charges_template},["charge_type","account_head","rate","tax_amount","total","description","cost_center"])
+					for i in template_child_table:
+						self.append("taxes_and_charges",{
+							"charge_type":i.charge_type,
+							"account_head":i.account_head,
+							"rate":i.rate,
+							"tax_amount":i.tax_amount,
+							"total":i.total,
+							"description":i.description,
+							"cost_center":i.cost_center
+						})
+				else:
+					if(self.place_of_supply):
+						frappe.throw(f"Please add the address for Company {self.company}")
+					else:
+						frappe.throw(f"Please add the address for Supplier {self.supplier_id}")
 
 	#To Calculate Total Tax Amount 
 	@frappe.whitelist()
 	def get_tax_amount(self):
-		if(len(self.get("taxes_and_charges"))==2):
-			for i in self.get("taxes_and_charges"):
-				doc=frappe.get_value("Item Tax Template Detail",{"parent":i.tax_template})
-			# frappe.msgprint("Two")
-		else:
-			pass
-			# frappe.msgprint("One")
+		if(self.in_or_out=="OUT"):
+			if(self.billing_address_gstin):
+				for k in self.get("taxes_and_charges"):
+					total_taxable_amt=0
+					for i in self.get("outsource_job_work_details"):
+						if(i.tax_template):
+							tax_rate=frappe.get_value("Item Tax Template Detail",{"parent":i.tax_template,"tax_type":k.account_head},"tax_rate")
+							if(tax_rate):
+								tax_amt=tax_rate*i.total_amount/100
+								total_taxable_amt=total_taxable_amt+tax_amt
+					k.tax_amount=round(total_taxable_amt,2)
+					check=0
+					if(len(self.get("taxes_and_charges"))==2):
+						check=1
+						if(self.get("taxes_and_charges")[0].total==0 or self.get("taxes_and_charges")[0].total==None):
+							k.total=round(total_taxable_amt,2)+self.total_amount
+						else:
+							k.total=round(total_taxable_amt,2)+self.get("taxes_and_charges")[0].total
+					if(check==0):
+						k.total=round(total_taxable_amt,2)+self.total_amount
+				if(len(self.get("taxes_and_charges"))==2):
+					self.total_taxes_and_charges=self.get("taxes_and_charges")[0].tax_amount+self.get("taxes_and_charges")[1].tax_amount
+				else:	
+					self.total_taxes_and_charges=self.get("taxes_and_charges")[0].tax_amount
+				self.grand_total=self.total_taxes_and_charges+self.total_amount
+
+
+	#To update amount when we chnage rate in child table as well parent table
+	@frappe.whitelist()
+	def update_item_amount(self,index=None):
+		if(self.in_or_out=="OUT"):
+			if(self.billing_address_gstin):
+				if(index or index==0):
+					self.get("outsource_job_work_details")[index].total_amount=self.get("outsource_job_work_details")[index].rate*self.get("outsource_job_work_details")[index].quantity
+				self.total_quantity = self.calculating_total('outsource_job_work_details','quantity')
+				self.total_amount = self.calculating_total('outsource_job_work_details','total_amount')
+				self.get("taxes_and_charges").clear()
+				self.get_in_out_tax_template()
+				self.get_tax_amount()
+
 
 #*********************************************************************************** Program end***************************************************
 # ============================================================================================================================================================

@@ -107,6 +107,18 @@ frappe.ui.form.on('Outsourcing Job Work', {
             frm.refresh_field('outsource_job_work_details');
             frm.clear_table("outsourcing_job_work");
             frm.refresh_field('outsourcing_job_work');
+            frm.clear_table("taxes_and_charges");
+            frm.refresh_field('taxes_and_charges');
+            frm.doc.total_taxes_and_charges=""
+            frm.doc.grand_total=""
+            frm.doc.sales_taxes_and_charges_template=""
+            if(frm.doc.in_or_out=="IN")
+            {
+                frm.fields_dict['taxes_and_charges'].toggle(false);
+                frm.fields_dict['total_taxes_and_charges'].toggle(false);
+                frm.fields_dict['grand_total'].toggle(false);
+                frm.fields_dict['sales_taxes_and_charges_template'].toggle(false);
+            } 
     }
 });
 
@@ -294,6 +306,16 @@ frappe.ui.form.on('Outsourcing Job Work', {
         frm.doc.place_of_supply=""
         frm.doc.territory=""
         frm.doc.contact_person=""
+        frm.doc.total_quantity=""
+        frm.doc.total_amount=""
+        frm.doc.sales_taxes_and_charges_template=""
+        frm.doc.finished_item_code=""
+        frm.doc.finished_item_name=""
+        frm.doc.production_quantity=""
+        frm.doc.total_taxes_and_charges=""
+        frm.doc.grand_total=""
+        frm.clear_table("taxes_and_charges")
+        frm.clear_table("outsource_job_work_details")
         frm.call({
 			method:'get_supplier_address',
 			doc:frm.doc,
@@ -305,7 +327,8 @@ frappe.ui.form.on('Outsourcing Job Work', {
 			method:'get_in_out_tax_template',
 			doc:frm.doc,
 		})
-    }
+    },
+  
 });
 frappe.ui.form.on('Outsource Job Work Details', {
     as_it_is:function(frm){
@@ -329,8 +352,23 @@ frappe.ui.form.on('Outsource Job Work Details', {
     },
     tax_template: function(frm) {
         frm.call({
-			method:'get_tax_temp',
-			doc:frm.doc,
+			method:'update_item_amount',
+			args: {
+                index: null
+            },
+            doc: frm.doc,
+		})
+    },
+    rate:function(frm,cdt,cdn) {
+        let d = locals[cdt][cdn];
+        let table = frm.fields_dict['outsource_job_work_details'].grid;
+        let table_index = table.grid_rows.findIndex(row => row.doc === d);
+        frm.call({
+			method:'update_item_amount',
+			args: {
+                index: table_index
+            },
+            doc: frm.doc,
 		})
     }
 });

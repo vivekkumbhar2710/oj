@@ -50,7 +50,9 @@
   "taxes_and_charges",
   "section_break_t5bat",
   "total_taxes_and_charges",
-  "column_break_fcpr0",
+  "column_break_stslz",
+  "grand_total",
+  "section_break_bm6ts",
   "process_status",
   "amended_from",
   "other_details_tab",
@@ -170,14 +172,16 @@
    "fieldname": "total_quantity",
    "fieldtype": "Float",
    "label": "Total Quantity",
-   "precision": "2"
+   "precision": "2",
+   "read_only": 1
   },
   {
    "depends_on": "eval:doc.in_or_out=='IN' || doc.in_or_out=='OUT';",
    "fieldname": "total_amount",
    "fieldtype": "Float",
    "label": "Total Amount",
-   "precision": "2"
+   "precision": "2",
+   "read_only": 1
   },
   {
    "depends_on": "eval:doc.in_or_out=='IN' || doc.in_or_out=='OUT';",
@@ -189,9 +193,10 @@
   {
    "depends_on": "eval:doc.in_or_out=='IN' || doc.in_or_out=='OUT';",
    "fieldname": "total_taxes_and_charges",
-   "fieldtype": "Float",
+   "fieldtype": "Currency",
    "label": "Total Taxes and Charges",
-   "precision": "2"
+   "precision": "2",
+   "read_only": 1
   },
   {
    "fieldname": "naming_series",
@@ -266,10 +271,6 @@
   {
    "fieldname": "section_break_t5bat",
    "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "column_break_fcpr0",
-   "fieldtype": "Column Break"
   },
   {
    "allow_on_submit": 1,
@@ -367,7 +368,8 @@
   {
    "fieldname": "company_gstin",
    "fieldtype": "Data",
-   "label": "Company GSTIN"
+   "label": "Company GSTIN",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_qryfr",
@@ -376,7 +378,8 @@
   {
    "fieldname": "company_address",
    "fieldtype": "Small Text",
-   "label": "Company Address"
+   "label": "Company Address",
+   "read_only": 1
   },
   {
    "fieldname": "billing_address_section",
@@ -392,22 +395,26 @@
   {
    "fieldname": "address",
    "fieldtype": "Small Text",
-   "label": "Address"
+   "label": "Address",
+   "read_only": 1
   },
   {
    "fieldname": "billing_address_gstin",
    "fieldtype": "Data",
-   "label": "Billing Address GSTIN"
+   "label": "Billing Address GSTIN",
+   "read_only": 1
   },
   {
    "fieldname": "gst_category",
    "fieldtype": "Data",
-   "label": "GST Category"
+   "label": "GST Category",
+   "read_only": 1
   },
   {
    "fieldname": "place_of_supply",
    "fieldtype": "Data",
-   "label": "Place of Supply"
+   "label": "Place of Supply",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_hcmyz",
@@ -416,24 +423,44 @@
   {
    "fieldname": "contact_person",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Contact Person"
   },
   {
    "fieldname": "territory",
    "fieldtype": "Data",
-   "label": "Territory"
+   "label": "Territory",
+   "read_only": 1
   },
   {
    "depends_on": "eval:doc.in_or_out=='IN' || doc.in_or_out=='OUT';",
    "fieldname": "sales_taxes_and_charges_template",
    "fieldtype": "Link",
    "label": "Sales Taxes and Charges Template",
-   "options": "Sales Taxes and Charges Template"
+   "options": "Sales Taxes and Charges Template",
+   "read_only": 1
   },
   {
    "fieldname": "place_of_supply_for_company",
    "fieldtype": "Data",
-   "label": "Place of Supply for Company"
+   "label": "Place of Supply for Company",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.in_or_out=='IN' || doc.in_or_out=='OUT';",
+   "fieldname": "grand_total",
+   "fieldtype": "Currency",
+   "label": "Grand Total",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_stslz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_bm6ts",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -444,7 +471,7 @@
    "link_fieldname": "custom_outsourcing_job_work"
   }
  ],
- "modified": "2023-12-21 18:46:54.817026",
+ "modified": "2023-12-22 16:03:30.663778",
  "modified_by": "Administrator",
  "module": "Outsourcing JobWork",
  "name": "Outsourcing Job Work",
