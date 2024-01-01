@@ -331,12 +331,12 @@ frappe.ui.form.on('Outsourcing Job Work', {
   
 });
 frappe.ui.form.on('Outsource Job Work Details', {
-    as_it_is:function(frm){
-        frm.call({
-            method:"get_as_it_is_item",
-            doc:frm.doc
-        });
-    },
+    // as_it_is:function(frm){
+    //     frm.call({
+    //         method:"get_as_it_is_item",
+    //         doc:frm.doc
+    //     });
+    // },
     source_warehouse: function(frm,cdt,cdn) {
         let d = locals[cdt][cdn];
         let table = frm.fields_dict['outsource_job_work_details'].grid;
@@ -346,7 +346,7 @@ frappe.ui.form.on('Outsource Job Work Details', {
 			args: {
                 item_index: table_index
             },
-            doc: frm.doc,
+            doc:frm.doc,
 		})
         frm.doc.total_amount=frm.doc.rate*frm.doc.quantity
     },
@@ -413,14 +413,14 @@ frappe.ui.form.on('Finished Item Outsource Job Work Details', {
         }
     }
 });
-// frappe.ui.form.on('Finished Item Outsource Job Work Details', {
-//     as_it_is:function(frm){
-//         frm.call({
-//             method:"get_as_it_is_item",
-//             doc:frm.doc
-//         });
-//     }
-// })
+frappe.ui.form.on('Finished Item Outsource Job Work Details', {
+    as_it_is:function(frm){
+        frm.call({
+            method:"get_as_it_is_item",
+            doc:frm.doc
+        });
+    }
+})
 // frappe.ui.form.on('Outsourcing Job Work', {
 //     target_warehouse_for_as_it_is_item: function(frm) {
 //         frm.call({
