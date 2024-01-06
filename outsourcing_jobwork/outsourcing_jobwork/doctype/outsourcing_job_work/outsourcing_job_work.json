@@ -8,10 +8,10 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "entry_type",
   "supplier_id",
   "in_or_out",
   "outsourcing_job_work",
-  "naming_series",
   "column_break_tygob",
   "supplier_name",
   "company",
@@ -23,10 +23,13 @@
   "column_break_jhwoa",
   "source_warehouse",
   "target_warehouse",
+  "naming_series",
   "section_break_ufsjv",
   "finished_item_code",
+  "loan_material_item_code",
   "column_break_ro1qm",
   "finished_item_name",
+  "loan_material_item_name",
   "finished_item_rate",
   "column_break_1hqsm",
   "production_quantity",
@@ -205,11 +208,11 @@
    "options": "OSJW-"
   },
   {
-   "depends_on": "eval:doc.in_or_out=='OUT';",
+   "depends_on": "eval: doc.in_or_out == 'OUT' && doc.entry_type == 'Outsourcing Job Work';",
    "fieldname": "finished_item_code",
    "fieldtype": "Link",
    "label": "Finished Item Code",
-   "mandatory_depends_on": "eval:doc.in_or_out=='OUT';",
+   "mandatory_depends_on": "eval: doc.in_or_out == 'OUT' && doc.entry_type == 'Outsourcing Job Work';",
    "options": "Outsourcing BOM"
   },
   {
@@ -217,7 +220,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.in_or_out=='OUT';",
+   "depends_on": "eval: doc.in_or_out == 'OUT' && doc.entry_type == 'Outsourcing Job Work';",
    "fetch_from": "finished_item_code.finish_item_name",
    "fieldname": "finished_item_name",
    "fieldtype": "Data",
@@ -232,7 +235,7 @@
    "fieldtype": "Section Break"
   },
   {
-   "depends_on": "eval:doc.in_or_out=='OUT';",
+   "depends_on": "eval: doc.in_or_out == 'OUT' ;",
    "fieldname": "production_quantity",
    "fieldtype": "Float",
    "label": "Production Quantity ",
@@ -246,7 +249,7 @@
   {
    "allow_on_submit": 1,
    "default": "0",
-   "depends_on": "eval:doc.in_or_out=='OUT';",
+   "depends_on": "eval: doc.in_or_out == 'OUT' ;",
    "fieldname": "production_done_quantity",
    "fieldtype": "Float",
    "label": "Production Done Quantity",
@@ -294,7 +297,7 @@
    "label": "Get Rejections"
   },
   {
-   "depends_on": "eval:doc.in_or_out=='OUT';",
+   "depends_on": "eval: doc.in_or_out == 'OUT' ;",
    "fieldname": "weight_per_unit",
    "fieldtype": "Float",
    "label": "Weight Per Unit",
@@ -302,7 +305,7 @@
    "read_only": 1
   },
   {
-   "depends_on": "eval:doc.in_or_out=='OUT';",
+   "depends_on": "eval: doc.in_or_out == 'OUT' ;",
    "fieldname": "total_finished_weight",
    "fieldtype": "Float",
    "label": "Total Finished Weight",
@@ -320,19 +323,19 @@
    "options": "Outsource As It Is Item"
   },
   {
-   "depends_on": "eval:doc.in_or_out=='OUT';",
+   "depends_on": "eval: doc.in_or_out == 'OUT' && doc.entry_type == 'Outsourcing Job Work';",
    "fieldname": "linking_option",
    "fieldtype": "Link",
    "label": "Select Linking Option",
-   "mandatory_depends_on": "eval:doc.in_or_out=='OUT';",
+   "mandatory_depends_on": "eval: doc.in_or_out == 'OUT' && doc.entry_type == 'Outsourcing Job Work';",
    "options": "DocType"
   },
   {
-   "depends_on": "eval:doc.in_or_out=='OUT';",
+   "depends_on": "eval: doc.in_or_out == 'OUT' && doc.entry_type == 'Outsourcing Job Work';",
    "fieldname": "select_link",
    "fieldtype": "Dynamic Link",
    "label": "Select Link",
-   "mandatory_depends_on": "eval:doc.in_or_out=='OUT';",
+   "mandatory_depends_on": "eval: doc.in_or_out == 'OUT' && doc.entry_type == 'Outsourcing Job Work';",
    "options": "linking_option"
   },
   {
@@ -342,7 +345,7 @@
    "options": "Warehouse"
   },
   {
-   "depends_on": "eval:doc.in_or_out=='OUT';",
+   "depends_on": "eval: doc.in_or_out == 'OUT' && doc.entry_type == 'Outsourcing Job Work';",
    "fieldname": "finished_item_rate",
    "fieldtype": "Float",
    "hidden": 1,
@@ -461,6 +464,28 @@
   {
    "fieldname": "section_break_bm6ts",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "entry_type",
+   "fieldtype": "Select",
+   "label": "Entry Type",
+   "options": "Outsourcing Job Work\nMaterial Loan Given\nOutsourcing Job Work W/O BOM"
+  },
+  {
+   "depends_on": "eval: doc.in_or_out == 'OUT' && (doc.entry_type == 'Material Loan Given' || doc.entry_type == 'Outsourcing Job Work W/O BOM' );",
+   "fieldname": "loan_material_item_code",
+   "fieldtype": "Link",
+   "label": "Finished Item Code",
+   "mandatory_depends_on": "eval: doc.in_or_out == 'OUT' && (doc.entry_type == 'Material Loan Given' || doc.entry_type == 'Outsourcing Job Work W/O BOM' );",
+   "options": "Item"
+  },
+  {
+   "depends_on": "eval: doc.in_or_out == 'OUT' && (doc.entry_type == 'Material Loan Given' || doc.entry_type == 'Outsourcing Job Work W/O BOM' );",
+   "fetch_from": "loan_material_item_code.item_name",
+   "fieldname": "loan_material_item_name",
+   "fieldtype": "Data",
+   "label": "Finished Item Name",
+   "mandatory_depends_on": "eval: doc.in_or_out == 'OUT' && (doc.entry_type == 'Material Loan Given' || doc.entry_type == 'Outsourcing Job Work W/O BOM' );"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -471,7 +496,7 @@
    "link_fieldname": "custom_outsourcing_job_work"
   }
  ],
- "modified": "2023-12-22 16:03:30.663778",
+ "modified": "2024-01-02 15:21:25.910422",
  "modified_by": "Administrator",
  "module": "Outsourcing JobWork",
  "name": "Outsourcing Job Work",

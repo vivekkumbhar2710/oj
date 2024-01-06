@@ -19,6 +19,10 @@ frappe.ui.form.on('Outsourcing Job Work', {
         frm.fields_dict['production_quantity'].$input.css('background-color', '#D2E9FB');
         frm.fields_dict['linking_option'].$input.css('background-color', '#D2E9FB');
         frm.fields_dict['select_link'].$input.css('background-color', '#D2E9FB');
+
+        frm.fields_dict['loan_material_item_code'].$input.css('background-color', '#D2E9FB');
+        frm.fields_dict['loan_material_item_name'].$input.css('background-color', '#D2E9FB');
+
     }
 });
 
@@ -132,6 +136,7 @@ frappe.ui.form.on('Outsourcing Job Work', {
                     ['Outsourcing Job Work', 'supplier_id', '=', frm.doc.supplier_id],
                     ['Outsourcing Job Work', 'in_or_out', '=', 'OUT'],
                     ['Outsourcing Job Work', 'process_status', '!=', 'Done'],
+                    ['Outsourcing Job Work', 'entry_type', '=', frm.doc.entry_type],
                 ]
             };
         };
@@ -207,6 +212,18 @@ frappe.ui.form.on("Outsourcing Job Work", {
         }
     });
 
+    frappe.ui.form.on("Outsourcing Job Work", {
+        setup: function(frm) {
+                frm.set_query("loan_material_item_code", function() { // Replace with the name of the link field
+                    return {
+                        filters: [
+                            ["Item", "custom_company", '=', frm.doc.company] // Replace with your actual filter criteria
+                        ]
+                    };
+                });
+            }
+        });
+    
 
 
 // ============================================================= Outsource Job Work Details =================================================  

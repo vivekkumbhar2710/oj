@@ -12,8 +12,9 @@ class OutsourcingJobWork(Document):
 		self.validate_rejected_items_reasons()
 		# self.total_quantity = self.calculating_total('outsource_job_work_details','quantity')
 		# self.total_amount = self.calculating_total('outsource_job_work_details','total_amount')
-		if self.finished_item_code and self.production_quantity:
-			weight_per_unit = self.item_weight_per_unit(self.finished_item_code)
+		if (self.finished_item_code or self.loan_material_item_code) and self.production_quantity:
+			item_code = self.finished_item_code or self.loan_material_item_code
+			weight_per_unit = self.item_weight_per_unit(item_code)
 			self.weight_per_unit = weight_per_unit
 			self.total_finished_weight =  weight_per_unit * self.production_quantity
    
@@ -21,9 +22,9 @@ class OutsourcingJobWork(Document):
 	def before_submit(self):
 		if self.in_or_out == "OUT":
 			self.stock_transfer_stock_entry()
-			
-			if not self.process_status:
-				self.process_status = "In Process"	
+			self.production_done_quantity = 0
+			self.process_status = "In Process"	
+
 		elif self.in_or_out == "IN":
 			self.manifacturing_stock_entry()
 			self.stock_transfer_stock_entry_rejections()
@@ -44,13 +45,13 @@ class OutsourcingJobWork(Document):
 		for d in self.get("outsourcing_job_work"):
 			OW = frappe.get_all('Outsourcing Job Work',
 				  								filters = {'name':d.outsourcing_job_work},
-												fields = ['finished_item_code','finished_item_name','production_quantity','production_done_quantity','target_warehouse','weight_per_unit','total_finished_weight'])
+												fields = ['loan_material_item_code','loan_material_item_name','finished_item_code','finished_item_name','production_quantity','production_done_quantity','target_warehouse','weight_per_unit','total_finished_weight'])
 			
 			for j in OW:
 				quantity = j.production_quantity - j.production_done_quantity
 				self.append("finished_item_outsource_job_work_details",{
-							'item_code': j.finished_item_code ,
-							'item_name': j.finished_item_name,
+							'item_code': j.finished_item_code  if self.entry_type == 'Outsourcing Job Work' else j.loan_material_item_code,
+							'item_name': j.finished_item_name if self.entry_type == 'Outsourcing Job Work' else j.loan_material_item_name,
 							'source_warehouse': j.target_warehouse ,
 							'target_warehouse': self.target_warehouse,
 							'actual_required_quantity': quantity,
@@ -77,29 +78,61 @@ class OutsourcingJobWork(Document):
 				if f.quantity:
 					if f.quantity > f.actual_required_quantity:
 						frappe.throw('You Can Not Select Quantity Greater Than Actual Required Quantity')
-
-					doc = frappe.get_all("Outsourcing BOM Details",
+					if 	self.entry_type == 'Outsourcing Job Work':
+						doc = frappe.get_all("Outsourcing BOM Details",
 									filters = {'parent':f.item_code},
 									fields = ['item_code','item_name','required_quantity','weight_per_unit'])
-					for d in doc:
-						quantity =d.required_quantity * f.quantity
-						warehouse=self.source_warehouse if self.source_warehouse else f.source_warehouse,
-						rate=self.get_item_rate(d.item_code,warehouse)
-						tax_template=self.get_tax_temp_for_items(d.item_code)
-						self.append("outsource_job_work_details",{
-									'item_code': d.item_code ,
-									'item_name': d.item_name,
-									'source_warehouse': self.source_warehouse if self.source_warehouse else f.source_warehouse,
-									'target_warehouse': self.target_warehouse ,
-									'quantity': quantity,
-									'actual_required_quantity':quantity,
-									'weight_per_unit': d.weight_per_unit ,
-									'total_required_weight': d.weight_per_unit * quantity,
-									'reference_id': f.reference_id,
-									'rate':rate,
-									'tax_template':tax_template,
-									'total_amount':round(rate*quantity,2) if rate and quantity else 0
-								},),
+					
+						for d in doc:
+							quantity =d.required_quantity * f.quantity
+							warehouse=self.source_warehouse if self.source_warehouse else f.source_warehouse,
+							rate=self.get_item_rate(d.item_code,warehouse)
+							tax_template=self.get_tax_temp_for_items(d.item_code)
+							self.append("outsource_job_work_details",{
+										'item_code': d.item_code ,
+										'item_name': d.item_name,
+										'source_warehouse': self.source_warehouse if self.source_warehouse else f.source_warehouse,
+										'target_warehouse': self.target_warehouse ,
+										'quantity': quantity,
+										'actual_required_quantity':quantity,
+										'weight_per_unit': d.weight_per_unit ,
+										'total_required_weight': d.weight_per_unit * quantity,
+										'reference_id': f.reference_id,
+										'rate':rate,
+										'tax_template':tax_template,
+										'total_amount':round(rate*quantity,2) if rate and quantity else 0
+									},),
+
+					else:
+						doc = [{
+							'item_code':f.item_code,
+							'item_name':frappe.get_value("Item",f.item_code,"item_name"),
+							'required_quantity':1,
+							'weight_per_unit': self.item_weight_per_unit(self.loan_material_item_code),}]
+			
+						for d in doc:
+							quantity =d.get('required_quantity') * f.quantity
+							warehouse=self.source_warehouse if self.source_warehouse else f.source_warehouse,
+							rate=self.get_item_rate(d.get('item_code'),warehouse)
+							tax_template=self.get_tax_temp_for_items(d.get('item_code'))
+							self.append("outsource_job_work_details",{
+										'item_code': d.get('item_code'),
+										'item_name': d.get('item_name'),
+										'source_warehouse': self.source_warehouse if self.source_warehouse else f.source_warehouse,
+										'target_warehouse': self.target_warehouse ,
+										'quantity': quantity,
+										'actual_required_quantity':quantity,
+										'weight_per_unit': d.get('weight_per_unit') ,
+										'total_required_weight': d.get('weight_per_unit') * quantity,
+										'reference_id': f.reference_id,
+										'rate':rate,
+										'tax_template':tax_template,
+										'total_amount':round(rate*quantity,2) if rate and quantity else 0
+									},),
+					
+
+
+
 					self.total_quantity = self.calculating_total('outsource_job_work_details','quantity')
 					self.total_amount = self.calculating_total('outsource_job_work_details','total_amount')
 					self.get("taxes_and_charges").clear()
@@ -214,27 +247,57 @@ class OutsourcingJobWork(Document):
 
 	@frappe.whitelist()
 	def set_data_in_ojwd (self):
-		if self.finished_item_code and self.production_quantity:
-			doc = frappe.get_all("Outsourcing BOM Details",
-									filters = {'parent':self.finished_item_code},
-									fields = ['item_code','item_name','required_quantity','weight_per_unit',])
-			for d in doc:
-				quantity = d.required_quantity * self.production_quantity
-				rate=self.get_item_rate(d.item_code, self.source_warehouse)
-				tax_template=self.get_tax_temp_for_items(d.item_code)
-				self.append("outsource_job_work_details",{
-							'item_code': d.item_code ,
-							'item_name': d.item_name,
-							'source_warehouse': self.source_warehouse ,
-							'target_warehouse': self.target_warehouse,
-							'weight_per_unit':d.weight_per_unit,
-							'total_required_weight': d.weight_per_unit * quantity,
-							'quantity': quantity,
-							'actual_required_quantity':quantity,
-							'rate':rate,
-							'tax_template':tax_template,
-							'total_amount':round(rate*quantity,2) if rate and quantity else 0
-						},),
+		if (self.finished_item_code or self.loan_material_item_code) and self.production_quantity:
+			if 	self.entry_type == 'Outsourcing Job Work':
+				doc = frappe.get_all("Outsourcing BOM Details",
+										filters = {'parent':self.finished_item_code},
+										fields = ['item_code','item_name','required_quantity','weight_per_unit',])
+				
+				for d in doc:
+					quantity = d.required_quantity * self.production_quantity
+					rate=self.get_item_rate(d.item_code, self.source_warehouse)
+					tax_template=self.get_tax_temp_for_items(d.item_code)
+					self.append("outsource_job_work_details",{
+								'item_code': d.item_code ,
+								'item_name': d.item_name,
+								'source_warehouse': self.source_warehouse ,
+								'target_warehouse': self.target_warehouse,
+								'weight_per_unit':d.weight_per_unit,
+								'total_required_weight': d.weight_per_unit * quantity,
+								'quantity': quantity,
+								'actual_required_quantity':quantity,
+								'rate':rate,
+								'tax_template':tax_template,
+								'total_amount':round(rate*quantity,2) if rate and quantity else 0
+							},),
+
+
+
+			else:
+				doc = [{
+					'item_code':self.loan_material_item_code,
+					'item_name':self.loan_material_item_name,
+					'required_quantity':1,
+					'weight_per_unit': self.item_weight_per_unit(self.loan_material_item_code),}]
+				
+			
+				for d in doc:
+					quantity = d.get('required_quantity') * self.production_quantity
+					rate=self.get_item_rate(d.get('item_code'), self.source_warehouse)
+					tax_template=self.get_tax_temp_for_items(d.get('item_code'))
+					self.append("outsource_job_work_details",{
+								'item_code': d.get('item_code') ,
+								'item_name': d.get('item_name'),
+								'source_warehouse': self.source_warehouse ,
+								'target_warehouse': self.target_warehouse,
+								'weight_per_unit':d.get('weight_per_unit'),
+								'total_required_weight': d.get('weight_per_unit') * quantity,
+								'quantity': quantity,
+								'actual_required_quantity':quantity,
+								'rate':rate,
+								'tax_template':tax_template,
+								'total_amount':round(rate*quantity,2) if rate and quantity else 0
+							},),
 			self.total_quantity = self.calculating_total('outsource_job_work_details','quantity')
 			self.total_amount = self.calculating_total('outsource_job_work_details','total_amount')
 			self.get("taxes_and_charges").clear()
@@ -243,7 +306,7 @@ class OutsourcingJobWork(Document):
 	
 	@frappe.whitelist()
 	def validate_ojwd(self):
-		if self.in_or_out == 'OUT':
+		if self.in_or_out == 'OUT' and self.entry_type == 'Outsourcing Job Work':
 			poc = (self.get('outsource_job_work_details'))
 
 			moc = frappe.get_all("Outsourcing BOM Details",
@@ -353,7 +416,7 @@ class OutsourcingJobWork(Document):
 	def item_weight_per_unit(self , item_code ):
 		item_uom = frappe.get_value("Item",item_code,"stock_uom")
 		if item_uom == 'Kg':
-			item_weight = frappe.get_all("Item",item_code,"weight")
+			item_weight = frappe.get_value("Item",item_code,"weight")
 		else:
 			production_uom_definition = frappe.get_all("Production UOM Definition",
 																				filters = {"parent":item_code,"uom": 'Kg'},
@@ -399,39 +462,66 @@ class OutsourcingJobWork(Document):
 	@frappe.whitelist()
 	def manifacturing_stock_entry(self):
 		if self.in_or_out == 'IN':
-			for cd in self.get("outsourcing_job_work"):      
+			if self.entry_type == 'Outsourcing Job Work':
+				for cd in self.get("outsourcing_job_work"):      
+					se = frappe.new_doc("Stock Entry")
+					se.stock_entry_type = "Manufacture"
+					se.company = self.company
+					se.posting_date = self.posting_date
+					
+					all_core = self.get("finished_item_outsource_job_work_details" ,  filters={"reference_id": cd.outsourcing_job_work ,'quantity':['!=', 0]})
+					for core in all_core:
+						if core.is_finished_item:
+							se.append(
+								"items",
+								{
+									"item_code": core.item_code,
+									"qty": core.quantity,
+									"t_warehouse": core.target_warehouse,
+									"is_finished_item": True
+								},)
+					details = self.get("outsource_job_work_details" ,  filters={"reference_id": cd.outsourcing_job_work ,})
+					for shena in details:
+						se.append(
+								"items",
+								{
+									"item_code": shena.item_code,
+									"qty":  shena.quantity,
+									"s_warehouse": shena.source_warehouse,
+								},)
+						
+
+					se.custom_outsourcing_job_work = self.name	
+					if all_core:
+						se.insert()
+						se.save()
+						se.submit()
+			else:
+				count = 0
 				se = frappe.new_doc("Stock Entry")
-				se.stock_entry_type = "Manufacture"
+				se.stock_entry_type = "Material Transfer"
 				se.company = self.company
 				se.posting_date = self.posting_date
-				
-				all_core = self.get("finished_item_outsource_job_work_details" ,  filters={"reference_id": cd.outsourcing_job_work ,'quantity':['!=', 0]})
-				for core in all_core:
-					if core.is_finished_item:
-						se.append(
-							"items",
-							{
-								"item_code": core.item_code,
-								"qty": core.quantity,
-								"t_warehouse": core.target_warehouse,
-								"is_finished_item": True
-							},)
-				details = self.get("outsource_job_work_details" ,  filters={"reference_id": cd.outsourcing_job_work ,})
-				for shena in details:
+				for d in self.get('outsource_job_work_details' ,filters= {"is_supply_by_supplier" : False }):
+					count = count + 1
 					se.append(
-							"items",
-							{
-								"item_code": shena.item_code,
-								"qty":  shena.quantity,
-								"s_warehouse": shena.source_warehouse,
-							},)
-					
+								"items",
+								{
+									"item_code": d.item_code,
+									"qty": d.quantity,
+									"s_warehouse": d.source_warehouse,
+									"t_warehouse": d.target_warehouse,
+								},)
 
+							
 				se.custom_outsourcing_job_work = self.name	
-				if all_core:
+				if count !=0:
 					se.insert()
 					se.save()
-					se.submit()
+					se.submit()	
+
+
+
 
 
 	@frappe.whitelist()
