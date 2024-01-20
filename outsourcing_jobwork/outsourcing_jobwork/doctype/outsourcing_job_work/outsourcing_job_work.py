@@ -6,17 +6,43 @@ from frappe.model.document import Document
 from frappe.utils import get_link_to_form
 
 class OutsourcingJobWork(Document):
+	def get_available_quantity(self,item_code, warehouse):
+		filters = 	{"item_code": item_code,"warehouse": warehouse}
+		fields = ["actual_qty"]
+		result = frappe.get_all("Bin", filters=filters, fields=fields)
+		if result and result[0].get("actual_qty"):
+			return result[0].get("actual_qty")
+		else:
+			return 0
+
+
+	def on_refresh_stockqty_update(self ,table , item ,warehouse ,available):
+		table_data = self.get(str(table))
+		item_field = str(item)
+		warehouse_field =str(warehouse)
+		available_field = str(available)
+		for d in table_data:
+			if d.get(item_field) and d.get(warehouse_field):
+				d[available_field] = self.get_available_quantity(d.get(item_field), d.get(warehouse_field))
+				# frappe.msgprint(str(r))
+
+
 	def before_save(self):
 		self.validate_ojwd()
 		self.finish_total_quentity_calculate()
 		self.validate_rejected_items_reasons()
+		self.getting_weight()
 		# self.total_quantity = self.calculating_total('outsource_job_work_details','quantity')
 		# self.total_amount = self.calculating_total('outsource_job_work_details','total_amount')
-		if (self.finished_item_code or self.loan_material_item_code) and self.production_quantity:
+	@frappe.whitelist()
+	def getting_weight(self):
+		# frappe.msgprint("hiii")
+		if (self.finished_item_code or self.loan_material_item_code):
 			item_code = self.finished_item_code or self.loan_material_item_code
 			weight_per_unit = self.item_weight_per_unit(item_code)
 			self.weight_per_unit = weight_per_unit
-			self.total_finished_weight =  weight_per_unit * self.production_quantity
+			if self.production_quantity:
+				self.total_finished_weight =  weight_per_unit * self.production_quantity
    
 
 	def before_submit(self):
@@ -260,6 +286,7 @@ class OutsourcingJobWork(Document):
 					self.append("outsource_job_work_details",{
 								'item_code': d.item_code ,
 								'item_name': d.item_name,
+								'available_quantity': self.get_available_quantity(d.item_code, self.source_warehouse),
 								'source_warehouse': self.source_warehouse ,
 								'target_warehouse': self.target_warehouse,
 								'weight_per_unit':d.weight_per_unit,
@@ -288,6 +315,7 @@ class OutsourcingJobWork(Document):
 					self.append("outsource_job_work_details",{
 								'item_code': d.get('item_code') ,
 								'item_name': d.get('item_name'),
+								'available_quantity': self.get_available_quantity(d.get('item_code'), self.source_warehouse),
 								'source_warehouse': self.source_warehouse ,
 								'target_warehouse': self.target_warehouse,
 								'weight_per_unit':d.get('weight_per_unit'),

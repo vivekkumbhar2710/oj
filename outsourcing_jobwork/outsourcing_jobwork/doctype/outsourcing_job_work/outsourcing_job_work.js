@@ -56,7 +56,11 @@ frappe.ui.form.on('Outsourcing Job Work', {
         frm.call({
 			method:'set_data_in_ojwd',
 			doc:frm.doc,
-		})
+		});
+        frm.call({
+            method:'getting_weight',
+            doc:frm.doc,
+        })
     }
 });
 
@@ -72,8 +76,13 @@ frappe.ui.form.on('Outsourcing Job Work', {
             frm.call({
                 method:'set_data_in_ojwd',
                 doc:frm.doc,
-            })
+            },);
+           
 	}
+    frm.call({
+        method:'getting_weight',
+        doc:frm.doc,
+    })
 
     }
 });
