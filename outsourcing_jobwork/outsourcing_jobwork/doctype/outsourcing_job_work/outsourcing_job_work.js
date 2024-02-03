@@ -2,29 +2,68 @@
 // For license information, please see license.txt
 
 
+// frappe.ui.form.on('Outsourcing Job Work', {
+//     refresh: function(frm) {
+//         frm.fields_dict['supplier_id'].$input.css('background-color', '#D2E9FB');
+//         frm.fields_dict['supplier_name'].$input.css('background-color', '#D2E9FB');
+//         frm.fields_dict['in_or_out'].$input.css('background-color', '#D2E9FB');
+//         frm.fields_dict['outsourcing_job_work'].$input.css('background-color', '#D2E9FB');
+//         frm.fields_dict['naming_series'].$input.css('background-color', '#D2E9FB');
+//         frm.fields_dict['company'].$input.css('background-color', '#D2E9FB');
+//         frm.fields_dict['posting_date'].$input.css('background-color', '#D2E9FB');
+//         frm.fields_dict['posting_time'].$input.css('background-color', '#D2E9FB');
+//         frm.fields_dict['source_warehouse'].$input.css('background-color', '#D2E9FB');
+//         frm.fields_dict['target_warehouse'].$input.css('background-color', '#D2E9FB');
+//         frm.fields_dict['finished_item_code'].$input.css('background-color', '#D2E9FB');
+//         frm.fields_dict['finished_item_name'].$input.css('background-color', '#D2E9FB');
+//         frm.fields_dict['production_quantity'].$input.css('background-color', '#D2E9FB');
+//         frm.fields_dict['linking_option'].$input.css('background-color', '#D2E9FB');
+//         frm.fields_dict['select_link'].$input.css('background-color', '#D2E9FB');
+
+//         frm.fields_dict['loan_material_item_code'].$input.css('background-color', '#D2E9FB');
+//         frm.fields_dict['loan_material_item_name'].$input.css('background-color', '#D2E9FB');
+
+//     }
+// });
+
 frappe.ui.form.on('Outsourcing Job Work', {
     refresh: function(frm) {
-        frm.fields_dict['supplier_id'].$input.css('background-color', '#D2E9FB');
-        frm.fields_dict['supplier_name'].$input.css('background-color', '#D2E9FB');
-        frm.fields_dict['in_or_out'].$input.css('background-color', '#D2E9FB');
-        frm.fields_dict['outsourcing_job_work'].$input.css('background-color', '#D2E9FB');
-        frm.fields_dict['naming_series'].$input.css('background-color', '#D2E9FB');
-        frm.fields_dict['company'].$input.css('background-color', '#D2E9FB');
-        frm.fields_dict['posting_date'].$input.css('background-color', '#D2E9FB');
-        frm.fields_dict['posting_time'].$input.css('background-color', '#D2E9FB');
-        frm.fields_dict['source_warehouse'].$input.css('background-color', '#D2E9FB');
-        frm.fields_dict['target_warehouse'].$input.css('background-color', '#D2E9FB');
-        frm.fields_dict['finished_item_code'].$input.css('background-color', '#D2E9FB');
-        frm.fields_dict['finished_item_name'].$input.css('background-color', '#D2E9FB');
-        frm.fields_dict['production_quantity'].$input.css('background-color', '#D2E9FB');
-        frm.fields_dict['linking_option'].$input.css('background-color', '#D2E9FB');
-        frm.fields_dict['select_link'].$input.css('background-color', '#D2E9FB');
+        const fieldsToColor = [
+            'supplier_id', 'supplier_name', 'in_or_out', 'outsourcing_job_work',
+            'naming_series', 'company', 'posting_date', 'posting_time',
+            'source_warehouse', 'target_warehouse', 'finished_item_code',
+            'finished_item_name', 'production_quantity', 'linking_option', 'select_link',
+            'loan_material_item_code', 'loan_material_item_name'
+        ];
 
-        frm.fields_dict['loan_material_item_code'].$input.css('background-color', '#D2E9FB');
-        frm.fields_dict['loan_material_item_name'].$input.css('background-color', '#D2E9FB');
+        fieldsToColor.forEach(field => {
+            const inputField = frm.fields_dict[field] && frm.fields_dict[field].$input;
+            if (inputField) {
+                inputField.css('background-color', '#D2E9FB');
+            }
+        });
 
+        if (frm.doc.outsource_as_it_is_item && frm.doc.outsource_as_it_is_item.length > 0) {
+            frm.fields_dict['outsource_as_it_is_item'].toggle(true);
+            frm.refresh_fields();
+            frm.fields_dict['target_warehouse_for_as_it_is_item'].toggle(true);
+            frm.refresh_fields();
+        }
+        else {
+            frm.fields_dict['outsource_as_it_is_item'].toggle(false);
+            frm.refresh_fields();
+            frm.fields_dict['target_warehouse_for_as_it_is_item'].toggle(false);
+            frm.refresh_fields();
+        }
+
+        frm.call({
+			method:'get_company_address',
+			doc:frm.doc,
+		})
     }
 });
+
+
 
 
 // ============================================================= Outsourcing Job Work ================================================= 
@@ -305,13 +344,6 @@ frappe.ui.form.on('Finished Item Outsource Job Work Details', {
 // ============================================================= Program for Outsource As It Is Item Table =================================================  
 
 frappe.ui.form.on('Outsourcing Job Work', {
-	refresh: function(frm) {
-        frm.fields_dict['outsource_as_it_is_item'].toggle(false);
-        frm.refresh_fields();
-        
-        frm.fields_dict['target_warehouse_for_as_it_is_item'].toggle(false);
-        frm.refresh_fields();
-    },
     target_warehouse_for_as_it_is_item: function(frm) {
         frm.call({
 			method:'set_target_warehouse_for_as_it_is',
