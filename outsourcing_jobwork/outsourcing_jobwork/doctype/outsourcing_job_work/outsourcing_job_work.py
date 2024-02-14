@@ -1,4 +1,5 @@
-# Copyright (c) 2023, Quantbit Technologies Pvt ltd and contributors
+ 
+  # Copyright (c) 2023, Quantbit Technologies Pvt ltd and contributors
 # For license information, please see license.txt
 
 import frappe
@@ -9,15 +10,35 @@ def getVal(val):
         return val if val is not None else 0
 
 class OutsourcingJobWork(Document):
+	
 	def get_available_quantity(self,item_code, warehouse):
-		filters = 	{"item_code": item_code,"warehouse": warehouse}
-		fields = ["actual_qty"]
-		result = frappe.get_all("Bin", filters=filters, fields=fields)
-		if result and result[0].get("actual_qty"):
-			return result[0].get("actual_qty")
-		else:
-			return 0
+		result = frappe.get_value("Bin",{"item_code": item_code,"warehouse": warehouse}, "actual_qty")
+		return result if result else 0
+	
+	@frappe.whitelist()
+	def set_available_qty(self ,table_name ,item_code , warehouse ,field_name):
+		for tn in self.get(table_name):
+			setattr(tn, field_name, self.get_available_quantity(tn.get(item_code), tn.get(warehouse)))
 
+
+	@frappe.whitelist()
+	def set_rate_from_order(self):
+		item_code = self.finished_item_code or self.loan_material_item_code
+		if self.select_link and item_code:
+			parent = self.linking_option
+			table= 'Blanket Order Item' if parent == 'Blanket Order' else 'Purchase Order Item'
+			self.rate_from_order = frappe.get_value(table, {"parent":self.select_link ,'item_code': item_code}, 'rate')
+
+	@frappe.whitelist()
+	def set_filters_for_items(self):
+		parent = self.linking_option
+		table= 'Blanket Order Item' if parent == 'Blanket Order' else 'Purchase Order Item'
+		moc = frappe.get_all(table, filters = {"parent":self.select_link }, fields =['item_code'])
+		final_listed =[]
+		for d in moc:
+			final_listed.append(d.item_code)
+		return final_listed
+		
 
 	def on_refresh_stockqty_update(self ,table , item ,warehouse ,available):
 		table_data = self.get(str(table))
@@ -74,17 +95,20 @@ class OutsourcingJobWork(Document):
 		for d in self.get("outsourcing_job_work"):
 			OW = frappe.get_all('Outsourcing Job Work',
 				  								filters = {'name':d.outsourcing_job_work},
-												fields = ['loan_material_item_code','loan_material_item_name','finished_item_code','finished_item_name','production_quantity','production_done_quantity','target_warehouse','weight_per_unit','total_finished_weight'])
+												fields = ['loan_material_item_code','loan_material_item_name','finished_item_code','finished_item_name','production_quantity','production_done_quantity','target_warehouse','weight_per_unit','total_finished_weight','rate_from_order'])
 			
 			for j in OW:
 				quantity = j.production_quantity - j.production_done_quantity
+				item_code = j.finished_item_code  if self.entry_type == 'Outsourcing Job Work' else j.loan_material_item_code
+				item_name = j.finished_item_name if self.entry_type == 'Outsourcing Job Work' else j.loan_material_item_name
 				self.append("finished_item_outsource_job_work_details",{
-							'item_code': j.finished_item_code  if self.entry_type == 'Outsourcing Job Work' else j.loan_material_item_code,
-							'item_name': j.finished_item_name if self.entry_type == 'Outsourcing Job Work' else j.loan_material_item_name,
+							'item_code': item_code,
+							'item_name': item_name,
 							'source_warehouse': j.target_warehouse ,
 							'target_warehouse': self.target_warehouse,
 							'actual_required_quantity': quantity,
 							'quantity': quantity,
+							'available_quantity' :self.get_available_quantity(item_code ,j.target_warehouse ),
 							'weight_per_unit':j.weight_per_unit,
 							'total_finished_weight': j.weight_per_unit * quantity,
 							'reference_id': d.outsourcing_job_work,
@@ -92,16 +116,17 @@ class OutsourcingJobWork(Document):
 							'cr_casting_rejection':0,
 							'mr_machine_rejection':0,
 							'rw_rework':0,
-							'as_it_is':0
+							'as_it_is':0,
+							'rate_from_order': j.rate_from_order
 						},),
 
 		self.if_in_fill_ojwd()
 
 	@frappe.whitelist()
 	def if_in_fill_ojwd(self):
-		outsource_job_work_details = self.get("outsource_job_work_details")
-		outsource_job_work_details.clear()
 		if self.in_or_out == "IN":
+			outsource_job_work_details = self.get("outsource_job_work_details")
+			outsource_job_work_details.clear()
 			f_i_ojwd = self.get("finished_item_outsource_job_work_details")
 			for f in f_i_ojwd:
 				if f.quantity:
@@ -217,6 +242,9 @@ class OutsourcingJobWork(Document):
 				rate=self.get_item_rate(i.item_code, self.source_warehouse)
 				i.rate=rate if rate else 0
 				i.total_amount=round(rate*i.quantity,2) if rate and i.quantity else 0
+				if i.item_code:
+					i.available_quantity =self.get_available_quantity(i.item_code,i.source_warehouse)
+
 		self.total_quantity = self.calculating_total('outsource_job_work_details','quantity')
 		self.total_amount = self.calculating_total('outsource_job_work_details','total_amount')
 		self.get("taxes_and_charges").clear()
@@ -225,6 +253,9 @@ class OutsourcingJobWork(Document):
 		for j in self.get("finished_item_outsource_job_work_details"):
 			if self.source_warehouse:
 				j.source_warehouse = self.source_warehouse
+
+			if j.item_code:
+					j.available_quantity =self.get_available_quantity(j.item_code,j.source_warehouse)
 
 
 	@frappe.whitelist()
@@ -306,7 +337,37 @@ class OutsourcingJobWork(Document):
 
 
 
-			else:
+			elif self.entry_type == 'Outsourcing Job Work W/O BOM':
+				item_code = frappe.get_value('Item', self.loan_material_item_code , 'raw_material')
+				if not item_code:
+					frappe.throw(f"Please Set Raw Item In Item Master For Item {self.loan_material_item_code}")
+				doc = [{
+					'item_code':item_code,
+					'item_name':frappe.get_value('Item', item_code , 'item_name'),
+					'required_quantity':1,
+					'weight_per_unit': self.item_weight_per_unit(item_code),}]
+				
+			
+				for d in doc:
+					quantity = d.get('required_quantity') * self.production_quantity
+					rate=self.get_item_rate(d.get('item_code'), self.source_warehouse)
+					tax_template=self.get_tax_temp_for_items(d.get('item_code'))
+					self.append("outsource_job_work_details",{
+								'item_code': d.get('item_code') ,
+								'item_name': d.get('item_name'),
+								'available_quantity': self.get_available_quantity(d.get('item_code'), self.source_warehouse),
+								'source_warehouse': self.source_warehouse ,
+								'target_warehouse': self.target_warehouse,
+								'weight_per_unit':d.get('weight_per_unit'),
+								'total_required_weight': d.get('weight_per_unit') * quantity,
+								'quantity': quantity,
+								'actual_required_quantity':quantity,
+								'rate':rate,
+								'tax_template':tax_template,
+								'total_amount':round(rate*quantity,2) if rate and quantity else 0
+							},),
+			
+			else :
 				doc = [{
 					'item_code':self.loan_material_item_code,
 					'item_name':self.loan_material_item_name,
@@ -332,6 +393,7 @@ class OutsourcingJobWork(Document):
 								'tax_template':tax_template,
 								'total_amount':round(rate*quantity,2) if rate and quantity else 0
 							},),
+			
 			self.total_quantity = self.calculating_total('outsource_job_work_details','quantity')
 			self.total_amount = self.calculating_total('outsource_job_work_details','total_amount')
 			self.get("taxes_and_charges").clear()
@@ -388,63 +450,138 @@ class OutsourcingJobWork(Document):
 
 	@frappe.whitelist()
 	def set_dat_in_rejected_items_reasons(self):
-		for x in self.get("finished_item_outsource_job_work_details"):
-			if x.cr_casting_rejection:
-				self.append("rejected_items_reasons",{
-							'item_code': x.item_code,
-							'item_name': x.item_name,
-							'reference_id': x.reference_id,
-							'rejection_type': "CR (Casting Rejection)",
-							'quantity': x.cr_casting_rejection,
-							'weight_per_unit': x.weight_per_unit,
-							'total_rejected_weight': x.weight_per_unit * x.cr_casting_rejection,
-							'target_warehouse':'',
-						},),
-			if x.mr_machine_rejection:
-				self.append("rejected_items_reasons",{
-							'item_code': x.item_code,
-							'item_name': x.item_name,
-							'reference_id': x.reference_id,
-							'rejection_type': "MR (Machine Rejection)",
-							'quantity': x.mr_machine_rejection,
-							'weight_per_unit': x.weight_per_unit,
-							'total_rejected_weight': x.weight_per_unit * x.mr_machine_rejection,
-							'target_warehouse':'',
-						},),
-			if x.rw_rework:
-				self.append("rejected_items_reasons",{
-							'item_code': x.item_code,
-							'item_name': x.item_name,
-							'reference_id': x.reference_id,
-							'rejection_type': "RW (Rework)",
-							'quantity': x.rw_rework,
-							'weight_per_unit': x.weight_per_unit,
-							'total_rejected_weight': x.weight_per_unit * x.rw_rework,
-							'target_warehouse':'',
-						},),
+		for n in self.get("finished_item_outsource_job_work_details"):
+			if 	self.entry_type == 'Outsourcing Job Work':
+				doc = frappe.get_all("Outsourcing BOM Details",
+										filters = {'parent':n.item_code},
+										fields = ['item_code','item_name','required_quantity','weight_per_unit',])
+				
+
+			elif self.entry_type == 'Outsourcing Job Work W/O BOM':
+				item_code = frappe.get_value('Item', n.item_code , 'raw_material')
+				if not item_code:
+					frappe.throw(f"Please Set Raw Item In Item Master For Item {n.item_code}")
+				doc = [{
+					'item_code':item_code,
+					'item_name':frappe.get_value('Item', item_code , 'item_name'),
+					'required_quantity':1,
+					'weight_per_unit': self.item_weight_per_unit(item_code),}]
+				
+			
+			else :
+				doc = [{
+					'item_code':n.item_code,
+					'item_name':frappe.get_value("Item",n.item_code,'item_name'),
+					'required_quantity':1,
+					'weight_per_unit': self.item_weight_per_unit(n.item_code),}]
+
+		
+			for x in doc:
+				per_unit_finish =  x.get('required_quantity')
+				if n.cr_casting_rejection:
+					cr_qty = n.cr_casting_rejection * per_unit_finish
+					self.append("rejected_items_reasons",{
+								'item_code':  x.get('item_code'),
+								'item_name':x.get('item_name'),
+								# 'reference_id': x.reference_id,
+								'rejection_type': "CR (Casting Rejection)",
+								'quantity': cr_qty,
+								'weight_per_unit': n.weight_per_unit,
+								'total_rejected_weight': n.weight_per_unit * cr_qty,
+								'target_warehouse':'',
+							},),
+				if n.mr_machine_rejection:
+					mr_qty = n.mr_machine_rejection * per_unit_finish
+					self.append("rejected_items_reasons",{
+								'item_code':  x.get('item_code'),
+								'item_name':x.get('item_name'),
+								# 'reference_id': x.reference_id,
+								'rejection_type': "MR (Machine Rejection)",
+								'quantity': mr_qty,
+								'weight_per_unit': n.weight_per_unit,
+								'total_rejected_weight': n.weight_per_unit * mr_qty,
+								'target_warehouse':'',
+							},),
+				if n.rw_rework:
+					rw_qty = n.rw_rework * per_unit_finish
+					self.append("rejected_items_reasons",{
+								'item_code': x.get('item_code'),
+								'item_name':x.get('item_name'),
+								# 'reference_id': x.reference_id,
+								'rejection_type': "RW (Rework)",
+								'quantity': rw_qty,
+								'weight_per_unit': n.weight_per_unit,
+								'total_rejected_weight': n.weight_per_unit * rw_qty,
+								'target_warehouse':'',
+							},),
+		# for p in self.get("finished_item_outsource_job_work_details"):
+		# 	for x in self.get("outsource_job_work_details" , filters = {'reference_id' : p.reference_id }):
+		# 		per_unit_finish = (x.quantity / p.quantity )
+		# 		if p.cr_casting_rejection:
+		# 			cr_qty = p.cr_casting_rejection * per_unit_finish
+		# 			self.append("rejected_items_reasons",{
+		# 						'item_code': x.item_code,
+		# 						'item_name': x.item_name,
+		# 						'reference_id': x.reference_id,
+		# 						'rejection_type': "CR (Casting Rejection)",
+		# 						'quantity': cr_qty,
+		# 						'weight_per_unit': p.weight_per_unit,
+		# 						'total_rejected_weight': p.weight_per_unit * cr_qty,
+		# 						'target_warehouse':'',
+		# 					},),
+		# 		if p.mr_machine_rejection:
+		# 			mr_qty = p.mr_machine_rejection * per_unit_finish
+		# 			self.append("rejected_items_reasons",{
+		# 						'item_code': x.item_code,
+		# 						'item_name': x.item_name,
+		# 						'reference_id': x.reference_id,
+		# 						'rejection_type': "MR (Machine Rejection)",
+		# 						'quantity': mr_qty,
+		# 						'weight_per_unit': p.weight_per_unit,
+		# 						'total_rejected_weight': p.weight_per_unit * mr_qty,
+		# 						'target_warehouse':'',
+		# 					},),
+		# 		if p.rw_rework:
+		# 			rw_qty = p.rw_rework * per_unit_finish
+		# 			self.append("rejected_items_reasons",{
+		# 						'item_code': x.item_code,
+		# 						'item_name': x.item_name,
+		# 						'reference_id': x.reference_id,
+		# 						'rejection_type': "RW (Rework)",
+		# 						'quantity': rw_qty,
+		# 						'weight_per_unit': p.weight_per_unit,
+		# 						'total_rejected_weight': p.weight_per_unit * rw_qty,
+		# 						'target_warehouse':'',
+		# 					},),
 
 
 	@frappe.whitelist()
 	def validate_rejected_items_reasons(self):
-		for x in self.get("finished_item_outsource_job_work_details"):
+		for m in self.get("finished_item_outsource_job_work_details"):
 			total_cr , total_mr , total_rw = 0 ,0 ,0 
-			if x.cr_casting_rejection:
-				for p in self.get("rejected_items_reasons" , filters= {"reference_id" : x.reference_id ,"item_code" : x.item_code , "rejection_type": 'CR (Casting Rejection)',} ):
-					total_cr = total_cr + p.quantity
-				if total_cr != x.cr_casting_rejection:
-					frappe.throw('Invalid Rejection')
+			for x in self.get("outsource_job_work_details" , filters = {'reference_id' : m.reference_id }):
+				per_unit_finish = (x.quantity / m.quantity )
+				cr_qty = m.cr_casting_rejection * per_unit_finish
+				mr_qty = m.mr_machine_rejection * per_unit_finish
+				rw_qty = m.rw_rework * per_unit_finish
 
-			if x.mr_machine_rejection:
-				for q in self.get("rejected_items_reasons" , filters= {"reference_id" : x.reference_id ,"item_code" : x.item_code , "rejection_type": 'MR (Machine Rejection)',} ):
-					total_mr = total_mr + q.quantity
-				if total_mr != x.mr_machine_rejection:
-					frappe.throw('Invalid Rejection')
+				if m.cr_casting_rejection:
+					for p in self.get("rejected_items_reasons" , filters= {"reference_id" : x.reference_id ,"item_code" : x.item_code , "rejection_type": 'CR (Casting Rejection)',} ):
+						total_cr = total_cr + p.quantity
+					if total_cr != cr_qty:
+						frappe.throw('Invalid Rejection')
 
-			if x.rw_rework:
-				for r in self.get("rejected_items_reasons" , filters= {"reference_id" : x.reference_id ,"item_code" : x.item_code , "rejection_type": 'RW (Rework)',} ):
-					total_rw = total_rw + r.quantity
-				if total_rw != x.rw_rework:
-					frappe.throw('Invalid Rejection')
+				if m.mr_machine_rejection:
+					for q in self.get("rejected_items_reasons" , filters= {"reference_id" : x.reference_id ,"item_code" : x.item_code , "rejection_type": 'MR (Machine Rejection)',} ):
+						total_mr = total_mr + q.quantity
+					if total_mr != mr_qty:
+						frappe.throw('Invalid Rejection')
+
+				if m.rw_rework:
+					for r in self.get("rejected_items_reasons" , filters= {"reference_id" : x.reference_id ,"item_code" : x.item_code , "rejection_type": 'RW (Rework)',} ):
+						total_rw = total_rw + r.quantity
+					if total_rw != rw_qty:
+						frappe.throw('Invalid Rejection')
 
 	@frappe.whitelist()
 	def item_weight_per_unit(self , item_code ):
@@ -514,6 +651,19 @@ class OutsourcingJobWork(Document):
 									"t_warehouse": core.target_warehouse,
 									"is_finished_item": True
 								},)
+							if core.rate_from_order:
+								qty =0
+								qty = core.quantity + core.cr_casting_rejection
+								if core.update_mr_qty_value:
+									qty = qty + core.mr_machine_rejection
+								se.append(
+									"additional_costs",
+									{
+										"expense_account":'Expenses Included in Valuation - PEPL',
+										"description": 'Reference from Orders',
+										"amount": qty * core.rate_from_order ,
+
+									},)
 					details = self.get("outsource_job_work_details" ,  filters={"reference_id": cd.outsourcing_job_work ,})
 					for shena in details:
 						se.append(
@@ -568,7 +718,7 @@ class OutsourcingJobWork(Document):
 			se.posting_date = self.posting_date
 			for d in self.get('finished_item_outsource_job_work_details'):
 				if d.cr_casting_rejection or d.mr_machine_rejection or d.rw_rework:
-					for k in self.get('rejected_items_reasons' ,filters= {"item_code" : d.item_code }):
+					for k in self.get('rejected_items_reasons' ,filters= {"reference_id" : d.reference_id }):
 						count = count + 1
 						se.append(
 										"items",

@@ -34,11 +34,13 @@
   "column_break_ajzxm",
   "is_finished_item",
   "is_supply_by_supplier",
+  "update_mr_qty_value",
   "section_break_vqqme",
   "total_amount",
   "reference_id",
   "column_break_l299s",
-  "total_quantity"
+  "total_quantity",
+  "rate_from_order"
  ],
  "fields": [
   {
@@ -233,12 +235,23 @@
    "fieldtype": "Float",
    "label": "total_quantity",
    "precision": "2"
+  },
+  {
+   "fieldname": "rate_from_order",
+   "fieldtype": "Float",
+   "label": "Rate From Order"
+  },
+  {
+   "default": "0",
+   "fieldname": "update_mr_qty_value",
+   "fieldtype": "Check",
+   "label": "Update MR Qty Value"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-12-11 17:45:45.972566",
+ "modified": "2024-02-07 11:50:27.859909",
  "modified_by": "Administrator",
  "module": "Outsourcing JobWork",
  "name": "Finished Item Outsource Job Work Details",

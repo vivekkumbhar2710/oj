@@ -12,6 +12,8 @@
   "column_break_2gmnq",
   "finish_item_name",
   "column_break_vdjyo",
+  "finish_item_group",
+  "column_break_xznzm",
   "company",
   "section_break_7jkkg",
   "outsourcing_bom_details"
@@ -57,11 +59,22 @@
    "label": "Company",
    "options": "Company",
    "reqd": 1
+  },
+  {
+   "fetch_from": "finish_item_code.item_group",
+   "fieldname": "finish_item_group",
+   "fieldtype": "Link",
+   "label": "Finish Item Group",
+   "options": "Item Group"
+  },
+  {
+   "fieldname": "column_break_xznzm",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-11-10 15:00:50.120852",
+ "modified": "2024-02-05 11:42:42.253724",
  "modified_by": "Administrator",
  "module": "Outsourcing JobWork",
  "name": "Outsourcing BOM",
