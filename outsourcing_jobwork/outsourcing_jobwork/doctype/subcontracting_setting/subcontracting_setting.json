@@ -1,0 +1,102 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:company",
+ "creation": "2024-03-06 11:43:48.939164",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "in_default_setting_section",
+  "cr_warehouse",
+  "column_break_nvggb",
+  "mr_warehouse",
+  "column_break_l4auy",
+  "rw_warehouse",
+  "column_break_rfoql",
+  "as_it_is_warehouse",
+  "out_default_setting_section"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "unique": 1
+  },
+  {
+   "fieldname": "in_default_setting_section",
+   "fieldtype": "Section Break",
+   "label": "IN Default Setting"
+  },
+  {
+   "fieldname": "cr_warehouse",
+   "fieldtype": "Link",
+   "label": "CR (Casting Rejection) Warehouse",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "column_break_nvggb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mr_warehouse",
+   "fieldtype": "Link",
+   "label": "MR (Machine Rejection) Warehouse",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "column_break_l4auy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rw_warehouse",
+   "fieldtype": "Link",
+   "label": "RW (Rework) Warehouse",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "column_break_rfoql",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "as_it_is_warehouse",
+   "fieldtype": "Link",
+   "label": "AS IT IS (AS IT AS) Warehouse",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "out_default_setting_section",
+   "fieldtype": "Section Break",
+   "label": "OUT Default Setting"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-03-07 10:25:52.540590",
+ "modified_by": "Administrator",
+ "module": "Outsourcing JobWork",
+ "name": "Subcontracting Setting",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -329,7 +329,7 @@ frappe.ui.form.on("Outsourcing Job Work", {
                 callback: function(r) {
                     if (r.message) {
                         var k = r.message;
-                        final.push(["Outsourcing BOM", "finish_item_code", 'in', k]);
+                        final.push( );
                         loan_final.push(["Item", "name", 'in', k]);
                     }
                 }

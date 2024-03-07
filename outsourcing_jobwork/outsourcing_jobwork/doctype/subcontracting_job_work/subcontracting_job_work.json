@@ -1,0 +1,281 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2024-02-22 10:31:57.729594",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "amended_from",
+  "naming_series",
+  "entry_type",
+  "supplier_id",
+  "supplier_name",
+  "subcontracting_job_work",
+  "column_break_tygob",
+  "in_or_out",
+  "linking_option",
+  "blanket_order",
+  "purchase_order",
+  "column_break_ian3d",
+  "company",
+  "posting_date",
+  "posting_time",
+  "column_break_jhwoa",
+  "source_warehouse",
+  "target_warehouse",
+  "outsourcing_operations",
+  "section_break_62zph",
+  "items_outsourcing_job_work",
+  "items_bom_outsourcing_job_work",
+  "loan_items_outsourcing_job_work",
+  "raw_outsourcing_job_work",
+  "section_break_qwfnl",
+  "in_finished_item_outsource_job_work",
+  "in_raw_item_outsourcing_job_work",
+  "rejection_target_warehouse",
+  "rejected_items_reasons",
+  "in_loan_items_outsourcing_job_work"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "OSJW-"
+  },
+  {
+   "fieldname": "entry_type",
+   "fieldtype": "Select",
+   "label": "Entry Type",
+   "options": "Outsourcing Job Work With Order\nOutsourcing Job Work With BOM\nMaterial Loan Given"
+  },
+  {
+   "fieldname": "supplier_id",
+   "fieldtype": "Link",
+   "label": "Supplier ID",
+   "options": "Supplier",
+   "remember_last_selected_value": 1,
+   "reqd": 1
+  },
+  {
+   "fetch_from": "supplier_id.supplier_name",
+   "fieldname": "supplier_name",
+   "fieldtype": "Data",
+   "label": "Supplier Name"
+  },
+  {
+   "fieldname": "column_break_tygob",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "in_or_out",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "IN Or OUT",
+   "options": "\nOUT\nIN",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval: doc.in_or_out == 'OUT' && doc.entry_type == 'Outsourcing Job Work With Order';",
+   "fieldname": "linking_option",
+   "fieldtype": "Link",
+   "label": "Select Linking Option",
+   "mandatory_depends_on": "eval: doc.in_or_out == 'OUT' && doc.entry_type == 'Outsourcing Job Work With Order';",
+   "options": "DocType"
+  },
+  {
+   "depends_on": "eval: doc.in_or_out == 'OUT' && doc.entry_type != 'Material Loan Given';",
+   "fieldname": "outsourcing_operations",
+   "fieldtype": "Link",
+   "label": "Outsourcing Operations",
+   "options": "Outsourcing Operations"
+  },
+  {
+   "fieldname": "column_break_ian3d",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date",
+   "reqd": 1
+  },
+  {
+   "default": "Now",
+   "fieldname": "posting_time",
+   "fieldtype": "Time",
+   "label": "Posting Time",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_jhwoa",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "source_warehouse",
+   "fieldtype": "Link",
+   "label": "Source Warehouse",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "target_warehouse",
+   "fieldtype": "Link",
+   "label": "Target Warehouse",
+   "options": "Warehouse",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Subcontracting Job Work",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "section_break_62zph",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval: doc.in_or_out == 'OUT' && doc.entry_type == 'Outsourcing Job Work With Order';",
+   "fieldname": "items_outsourcing_job_work",
+   "fieldtype": "Table",
+   "label": "Items Outsourcing Job Work",
+   "options": "Items Outsourcing Job Work"
+  },
+  {
+   "depends_on": "eval: doc.in_or_out == 'OUT' && doc.entry_type == 'Outsourcing Job Work With BOM';",
+   "fieldname": "items_bom_outsourcing_job_work",
+   "fieldtype": "Table",
+   "label": "Items Bom Outsourcing Job Work",
+   "options": "Items Bom Outsourcing Job Work"
+  },
+  {
+   "depends_on": "eval: doc.in_or_out == 'OUT' && doc.entry_type != 'Material Loan Given';",
+   "fieldname": "raw_outsourcing_job_work",
+   "fieldtype": "Table",
+   "label": "Raw Outsourcing Job Work",
+   "options": "Raw Outsourcing Job Work"
+  },
+  {
+   "depends_on": "eval:doc.entry_type == 'Outsourcing Job Work With Order' && doc.linking_option == 'Blanket Order' && doc.in_or_out == 'OUT';",
+   "fieldname": "blanket_order",
+   "fieldtype": "Table MultiSelect",
+   "label": "Blanket Order",
+   "options": "Blanket Order Multi Select Outsourcing"
+  },
+  {
+   "depends_on": "eval:doc.entry_type == 'Outsourcing Job Work With Order' && doc.linking_option == 'Purchase Order' && doc.in_or_out == 'OUT';",
+   "fieldname": "purchase_order",
+   "fieldtype": "Table MultiSelect",
+   "label": "Purchase Order",
+   "options": "Purchase Order Multi Select Outsourcing"
+  },
+  {
+   "depends_on": "eval: doc.in_or_out == 'OUT' && doc.entry_type == 'Material Loan Given';",
+   "fieldname": "loan_items_outsourcing_job_work",
+   "fieldtype": "Table",
+   "label": "Loan Items Outsourcing Job Work",
+   "options": "Loan Items Outsourcing Job Work"
+  },
+  {
+   "depends_on": "eval:doc.in_or_out=='IN';",
+   "fieldname": "subcontracting_job_work",
+   "fieldtype": "Table MultiSelect",
+   "label": "Subcontracting Job Work",
+   "mandatory_depends_on": "eval:doc.in_or_out=='IN';",
+   "options": "Subcontracting Job Work Multi select"
+  },
+  {
+   "fieldname": "section_break_qwfnl",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval: doc.in_or_out == 'IN' && doc.entry_type != 'Material Loan Given';",
+   "fieldname": "in_finished_item_outsource_job_work",
+   "fieldtype": "Table",
+   "label": "IN Finished Item Outsource Job Work",
+   "options": "IN Finished Item Outsource Job Work"
+  },
+  {
+   "depends_on": "eval: doc.in_or_out == 'IN' && doc.entry_type != 'Material Loan Given';",
+   "fieldname": "in_raw_item_outsourcing_job_work",
+   "fieldtype": "Table",
+   "label": "IN Raw Item Outsourcing Job Work",
+   "options": "IN Raw Item Outsourcing Job Work"
+  },
+  {
+   "depends_on": "eval: doc.in_or_out == 'IN' && doc.entry_type != 'Material Loan Given';",
+   "fieldname": "rejected_items_reasons",
+   "fieldtype": "Table",
+   "label": "IN Rejected Items Reasons Outsourcing Job Work",
+   "options": "IN Rejected Items Reasons Outsourcing Job Work"
+  },
+  {
+   "depends_on": "eval: doc.in_or_out == 'IN' && doc.entry_type == 'Material Loan Given';",
+   "fieldname": "in_loan_items_outsourcing_job_work",
+   "fieldtype": "Table",
+   "label": "IN Loan Items Outsourcing Job Work",
+   "options": "IN Loan Items Outsourcing Job Work"
+  },
+  {
+   "depends_on": "eval: doc.in_or_out == 'IN' && doc.entry_type != 'Material Loan Given';",
+   "fieldname": "rejection_target_warehouse",
+   "fieldtype": "Link",
+   "label": "Rejection Target Warehouse",
+   "options": "Warehouse"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [
+  {
+   "link_doctype": "Stock Entry",
+   "link_fieldname": "custom_subcontracting_job_work"
+  },
+  {
+   "link_doctype": "Subcontracting Job Work",
+   "link_fieldname": "link"
+  }
+ ],
+ "modified": "2024-03-02 11:07:11.100784",
+ "modified_by": "Administrator",
+ "module": "Outsourcing JobWork",
+ "name": "Subcontracting Job Work",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

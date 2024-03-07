@@ -1,39 +1,47 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:reason",
- "creation": "2023-12-01 14:41:31.746597",
+ "autoname": "field:operation_name",
+ "creation": "2024-03-05 12:35:24.785190",
  "default_view": "List",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "reason",
-  "rejection_type"
+  "company",
+  "operation_name",
+  "unvaried"
  ],
  "fields": [
   {
-   "fieldname": "reason",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "operation_name",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Reason",
+   "label": "Operation Name",
    "reqd": 1,
    "unique": 1
   },
   {
-   "fieldname": "rejection_type",
-   "fieldtype": "Select",
-   "label": "Rejection Type",
-   "options": "CR (Casting Rejection)\nMR (Machine Rejection)\nRW (Rework)\nAS IT IS (AS IT AS)",
-   "reqd": 1
+   "default": "0",
+   "fieldname": "unvaried",
+   "fieldtype": "Check",
+   "label": "Unvaried"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-02-25 20:07:40.489995",
+ "modified": "2024-03-07 10:25:55.704116",
  "modified_by": "Administrator",
  "module": "Outsourcing JobWork",
- "name": "Outsourcing Rejection Reason",
+ "name": "Subcontracting Operations",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [

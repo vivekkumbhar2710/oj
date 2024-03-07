@@ -1,0 +1,33 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-02-23 11:47:37.629397",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "subcontracting_job_work"
+ ],
+ "fields": [
+  {
+   "fieldname": "subcontracting_job_work",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Subcontracting Job Work",
+   "options": "Subcontracting Job Work"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-03-07 10:26:01.133968",
+ "modified_by": "Administrator",
+ "module": "Outsourcing JobWork",
+ "name": "Subcontracting Job Work Multi select",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

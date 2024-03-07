@@ -1,0 +1,32 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-02-22 12:08:03.020707",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "blanket_order"
+ ],
+ "fields": [
+  {
+   "fieldname": "blanket_order",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Blanket Order",
+   "options": "Blanket Order"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-03-07 10:26:01.995519",
+ "modified_by": "Administrator",
+ "module": "Outsourcing JobWork",
+ "name": "Blanket Order Multi Select Outsourcing",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

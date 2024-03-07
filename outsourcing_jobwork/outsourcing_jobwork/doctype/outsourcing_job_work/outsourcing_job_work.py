@@ -441,8 +441,8 @@ class OutsourcingJobWork(Document):
 	@frappe.whitelist()
 	def finish_total_quentity_calculate(self):
 		for j in self.get("finished_item_outsource_job_work_details"):
-			j.total_quantity = j.quantity + j.cr_casting_rejection + j.mr_machine_rejection + j.rw_rework+j.as_it_is
-			j.total_finished_weight = j.weight_per_unit * j.quantity
+			j.total_quantity = getVal(j.quantity) + getVal(j.cr_casting_rejection) + getVal(j.mr_machine_rejection) + getVal(j.rw_rework) + getVal(j.as_it_is)
+			j.total_finished_weight = getVal(j.weight_per_unit) * getVal(j.quantity)
 	
 			if j.total_quantity > j.actual_required_quantity:
 				frappe.throw(f'Total Quantity For Item {j.item_code}-{j.item_name} is Should Not Be Greater Than Actual Required Quantity ')
@@ -483,7 +483,7 @@ class OutsourcingJobWork(Document):
 					self.append("rejected_items_reasons",{
 								'item_code':  x.get('item_code'),
 								'item_name':x.get('item_name'),
-								# 'reference_id': x.reference_id,
+								'reference_id': n.get('reference_id'),
 								'rejection_type': "CR (Casting Rejection)",
 								'quantity': cr_qty,
 								'weight_per_unit': n.weight_per_unit,
@@ -495,7 +495,7 @@ class OutsourcingJobWork(Document):
 					self.append("rejected_items_reasons",{
 								'item_code':  x.get('item_code'),
 								'item_name':x.get('item_name'),
-								# 'reference_id': x.reference_id,
+								'reference_id': n.get('reference_id'),
 								'rejection_type': "MR (Machine Rejection)",
 								'quantity': mr_qty,
 								'weight_per_unit': n.weight_per_unit,
@@ -507,7 +507,7 @@ class OutsourcingJobWork(Document):
 					self.append("rejected_items_reasons",{
 								'item_code': x.get('item_code'),
 								'item_name':x.get('item_name'),
-								# 'reference_id': x.reference_id,
+								'reference_id': n.get('reference_id'),
 								'rejection_type': "RW (Rework)",
 								'quantity': rw_qty,
 								'weight_per_unit': n.weight_per_unit,
