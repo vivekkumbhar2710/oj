@@ -8,24 +8,34 @@
  "engine": "InnoDB",
  "field_order": [
   "subcontracting",
-  "production_out_quantity",
   "column_break_es340",
   "raw_item_code",
-  "production_done_quantity",
   "column_break_hcejg",
   "raw_item_name",
-  "production_remaining_quantity",
-  "column_break_zrwqr",
-  "production_quantity",
   "section_break_o7huc",
+  "ok_quantity",
+  "column_break_wjnlw",
+  "cr_quantity",
+  "production_out_quantity",
+  "column_break_dxuil",
+  "mr_quantity",
+  "production_done_quantity",
+  "column_break_iqxxz",
+  "rw_quantity",
+  "production_remaining_quantity",
+  "column_break_3likz",
+  "as_it_is_quantity",
+  "production_quantity",
+  "section_break_vonmc",
   "source_warehouse",
+  "column_break_rlr6o",
   "available_quantity",
   "column_break_mzuhn",
   "target_warehouse",
   "section_break_ar5wf",
   "weight_per_unit",
+  "column_break_snmvd",
   "total_finished_weight",
-  "rate_from_order",
   "reference_id",
   "out_done"
  ],
@@ -79,16 +89,12 @@
    "label": "production_remaining_quantity"
   },
   {
-   "fieldname": "column_break_zrwqr",
-   "fieldtype": "Column Break"
-  },
-  {
    "columns": 1,
    "fieldname": "production_quantity",
    "fieldtype": "Float",
    "in_list_view": 1,
    "label": "Production Quantity ",
-   "reqd": 1
+   "read_only": 1
   },
   {
    "fieldname": "section_break_o7huc",
@@ -135,28 +141,76 @@
    "label": "Total Finished Weight"
   },
   {
-   "columns": 1,
-   "fieldname": "rate_from_order",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Rate From Order"
-  },
-  {
    "fieldname": "reference_id",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Reference ID"
   },
   {
    "default": "0",
    "fieldname": "out_done",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Out Done"
+  },
+  {
+   "fieldname": "ok_quantity",
+   "fieldtype": "Float",
+   "label": "OK Quantity"
+  },
+  {
+   "fieldname": "column_break_wjnlw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cr_quantity",
+   "fieldtype": "Float",
+   "label": "CR Quantity"
+  },
+  {
+   "fieldname": "column_break_dxuil",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mr_quantity",
+   "fieldtype": "Float",
+   "label": "MR Quantity"
+  },
+  {
+   "fieldname": "column_break_iqxxz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rw_quantity",
+   "fieldtype": "Float",
+   "label": "RW Quantity"
+  },
+  {
+   "fieldname": "column_break_3likz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "as_it_is_quantity",
+   "fieldtype": "Float",
+   "label": "AS IT IS Quantity"
+  },
+  {
+   "fieldname": "section_break_vonmc",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_rlr6o",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_snmvd",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-03-07 10:25:54.301537",
+ "modified": "2024-03-08 10:46:30.906276",
  "modified_by": "Administrator",
  "module": "Outsourcing JobWork",
  "name": "Bifurcation Out Subcontracting",

@@ -12,17 +12,19 @@
   "rejection_type",
   "section_break_b2hwk",
   "finished_item_code",
-  "raw_item_code",
   "column_break_euuzy",
-  "raw_item_name",
+  "raw_item_code",
   "column_break_wa4sz",
-  "source_warehouse",
-  "available_quantity",
-  "target_warehouse",
+  "raw_item_name",
   "column_break_s3ilg",
   "quantity",
   "section_break_rgj06",
+  "source_warehouse",
   "column_break_nlxvm",
+  "available_quantity",
+  "column_break_deqjn",
+  "target_warehouse",
+  "section_break_n0sb6",
   "weight_per_unit",
   "column_break_uzmnh",
   "total_rejected_weight",
@@ -32,10 +34,9 @@
   {
    "allow_on_submit": 1,
    "fieldname": "rejection_reason",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Rejection Reason ",
-   "options": "Outsourcing Rejection Reason"
+   "label": "Rejection Reason "
   },
   {
    "fieldname": "column_break_z77uw",
@@ -140,12 +141,21 @@
   {
    "fieldname": "reference_id",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Reference ID"
+  },
+  {
+   "fieldname": "column_break_deqjn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_n0sb6",
+   "fieldtype": "Section Break"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2024-03-07 10:25:53.326818",
+ "modified": "2024-03-08 10:37:29.075556",
  "modified_by": "Administrator",
  "module": "Outsourcing JobWork",
  "name": "IN Rejected Items Reasons Subcontracting",
