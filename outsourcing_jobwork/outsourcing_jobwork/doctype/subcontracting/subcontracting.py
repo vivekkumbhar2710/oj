@@ -228,6 +228,16 @@ class Subcontracting(Document):
 
 	@frappe.whitelist()
 	def rejected_item(self):
+		exists = frappe.db.exists('Subcontracting Setting',self.company)
+		c = m = r = a = None
+		if exists:
+			doc =  frappe.get_doc('Subcontracting Setting',self.company)
+			c = doc.cr_warehouse
+			m = doc.mr_warehouse
+			r = doc.rw_warehouse
+			a = doc.as_it_is_warehouse
+
+
 		self.set_quantity()
 		in_finished =  self.get('in_finished_item_subcontracting')
 		for i in in_finished :
@@ -244,7 +254,7 @@ class Subcontracting(Document):
 								'raw_item_name': ItemName(j.raw_item_code),
 								'quantity': as_it_is,
 								'rejection_type' :'AS IT IS (AS IT AS)' ,
-								'source_warehouse': j.source_warehouse,
+								'source_warehouse': a if a else j.source_warehouse,
 								'reference_id':i.reference_id,
 								'weight_per_unit':ItemWeight(j.raw_item_code),
 								'total_rejected_weight': ItemWeight(j.raw_item_code) * as_it_is,
@@ -256,7 +266,7 @@ class Subcontracting(Document):
 								'raw_item_name': ItemName(j.raw_item_code),
 								'quantity': cr_casting_rejection,
 								'rejection_type' :'CR (Casting Rejection)' ,
-								'source_warehouse': j.source_warehouse,
+								'source_warehouse': c if c else j.source_warehouse,
 								'reference_id':i.reference_id,
 								'weight_per_unit':ItemWeight(j.raw_item_code),
 								'total_rejected_weight': ItemWeight(j.raw_item_code) * cr_casting_rejection,
@@ -268,7 +278,7 @@ class Subcontracting(Document):
 								'raw_item_name': ItemName(j.raw_item_code),
 								'quantity': mr_machine_rejection,
 								'rejection_type' :'MR (Machine Rejection)' ,
-								'source_warehouse': j.source_warehouse,
+								'source_warehouse': m if m else j.source_warehouse,
 								'reference_id':i.reference_id,
 								'weight_per_unit':ItemWeight(j.raw_item_code),
 								'total_rejected_weight': ItemWeight(j.raw_item_code) * mr_machine_rejection,
@@ -280,7 +290,7 @@ class Subcontracting(Document):
 								'raw_item_name': ItemName(j.raw_item_code),
 								'quantity': rw_rework,
 								'rejection_type' :'RW (Rework)' ,
-								'source_warehouse': j.source_warehouse,
+								'source_warehouse': r if r else j.source_warehouse,
 								'reference_id':i.reference_id,
 								'weight_per_unit':ItemWeight(j.raw_item_code),
 								'total_rejected_weight': ItemWeight(j.raw_item_code) * rw_rework,
@@ -340,10 +350,10 @@ class Subcontracting(Document):
 				frappe.throw(f"You Can Not Inword {item} As It Have Not Any Out Entry")
 
 
-	@frappe.whitelist()
-	def set_source_warehouse(self):
-		self.set_table_data('in_raw_item_subcontracting','source_warehouse',self.source_warehouse,'available_quantity','raw_item_code','source_warehouse')
-		self.set_table_data('in_rejected_items_reasons_subcontracting','source_warehouse', self.source_warehouse,'available_quantity','raw_item_code','source_warehouse')
+	# @frappe.whitelist()
+	# def set_source_warehouse(self):
+	# 	self.set_table_data('in_raw_item_subcontracting','source_warehouse',self.source_warehouse,'available_quantity','raw_item_code','source_warehouse')
+	# 	self.set_table_data('in_rejected_items_reasons_subcontracting','source_warehouse', self.source_warehouse,'available_quantity','raw_item_code','source_warehouse')
 
 
 
