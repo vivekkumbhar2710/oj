@@ -20,7 +20,7 @@
   "linking_option",
   "blanket_order",
   "purchase_order",
-  "column_break_ian3d",
+  "column_break_ian3de",
   "company",
   "posting_date",
   "posting_time",
@@ -97,10 +97,6 @@
    "fieldtype": "Table MultiSelect",
    "label": "Purchase Order",
    "options": "Purchase Order Multi Select Outsourcing"
-  },
-  {
-   "fieldname": "column_break_ian3d",
-   "fieldtype": "Column Break"
   },
   {
    "bold": 1,
@@ -253,6 +249,10 @@
    "fieldtype": "Button",
    "hidden": 1,
    "label": "Test"
+  },
+  {
+   "fieldname": "column_break_ian3de",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -267,7 +267,7 @@
    "link_fieldname": "link"
   }
  ],
- "modified": "2024-03-06 16:21:34.414809",
+ "modified": "2024-03-12 11:24:32.684777",
  "modified_by": "Administrator",
  "module": "Outsourcing JobWork",
  "name": "Subcontracting",
