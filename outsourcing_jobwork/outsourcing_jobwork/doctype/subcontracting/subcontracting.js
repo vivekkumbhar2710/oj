@@ -187,12 +187,12 @@ frappe.ui.form.on('Subcontracting', {
 
 			}
 			else {
-				set_table_data(frm, 'in_raw_item_subcontracting','source_warehouse',frm.doc.source_warehouse,'available_quantity','raw_item_code','source_warehouse');
+				// set_table_data(frm, 'in_raw_item_subcontracting','source_warehouse',frm.doc.source_warehouse,'available_quantity','raw_item_code','source_warehouse');
 				// set_table_data(frm, 'in_rejected_items_reasons_subcontracting','source_warehouse',frm.doc.source_warehouse,'available_quantity','raw_item_code','source_warehouse');
-				// frm.call({
-				// 	method: 'set_source_warehouse',
-				// 	doc: frm.doc,
-				// })
+				frm.call({
+					method: 'set_source_warehouse',
+					doc: frm.doc,
+				})
 			}
 		}
 
@@ -220,7 +220,7 @@ frappe.ui.form.on('Subcontracting', {
 
 frappe.ui.form.on('Subcontracting', {
     blanket_order: function (frm) {
-		frm.clear_table("in_finished_item_subcontracting");
+	frm.clear_table("in_finished_item_subcontracting");
     frm.refresh_field('in_finished_item_subcontracting');
         frm.call({
             method: 'set_in_finished_item',

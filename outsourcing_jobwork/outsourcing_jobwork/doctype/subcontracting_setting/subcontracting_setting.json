@@ -17,6 +17,7 @@
   "rw_warehouse",
   "column_break_rfoql",
   "as_it_is_warehouse",
+  "default_expense_account",
   "out_default_setting_section"
  ],
  "fields": [
@@ -72,11 +73,17 @@
    "fieldname": "out_default_setting_section",
    "fieldtype": "Section Break",
    "label": "OUT Default Setting"
+  },
+  {
+   "fieldname": "default_expense_account",
+   "fieldtype": "Link",
+   "label": "Default Expense Account ",
+   "options": "Account"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-03-07 10:25:52.540590",
+ "modified": "2024-03-09 10:54:02.927225",
  "modified_by": "Administrator",
  "module": "Outsourcing JobWork",
  "name": "Subcontracting Setting",

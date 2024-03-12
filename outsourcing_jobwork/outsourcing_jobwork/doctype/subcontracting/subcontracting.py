@@ -112,7 +112,6 @@ class Subcontracting(Document):
 				fields = ['item_code' , 'parent','custom_subcontracting_operations','rate']
 
 			doc = frappe.get_all(doctype , filters = filters , fields = fields)
-			# frappe.throw(str(doc))
 			for d in doc:
 				self.append("in_finished_item_subcontracting",{
 											'in_item_code': d.item_code,
@@ -254,7 +253,8 @@ class Subcontracting(Document):
 								'raw_item_name': ItemName(j.raw_item_code),
 								'quantity': as_it_is,
 								'rejection_type' :'AS IT IS (AS IT AS)' ,
-								'source_warehouse': a if a else j.source_warehouse,
+								'source_warehouse':j.source_warehouse,
+								'target_warehouse':a ,
 								'reference_id':i.reference_id,
 								'weight_per_unit':ItemWeight(j.raw_item_code),
 								'total_rejected_weight': ItemWeight(j.raw_item_code) * as_it_is,
@@ -266,7 +266,8 @@ class Subcontracting(Document):
 								'raw_item_name': ItemName(j.raw_item_code),
 								'quantity': cr_casting_rejection,
 								'rejection_type' :'CR (Casting Rejection)' ,
-								'source_warehouse': c if c else j.source_warehouse,
+								'source_warehouse': j.source_warehouse,
+								'target_warehouse':c ,
 								'reference_id':i.reference_id,
 								'weight_per_unit':ItemWeight(j.raw_item_code),
 								'total_rejected_weight': ItemWeight(j.raw_item_code) * cr_casting_rejection,
@@ -278,7 +279,8 @@ class Subcontracting(Document):
 								'raw_item_name': ItemName(j.raw_item_code),
 								'quantity': mr_machine_rejection,
 								'rejection_type' :'MR (Machine Rejection)' ,
-								'source_warehouse': m if m else j.source_warehouse,
+								'source_warehouse': j.source_warehouse,
+								'target_warehouse':m ,
 								'reference_id':i.reference_id,
 								'weight_per_unit':ItemWeight(j.raw_item_code),
 								'total_rejected_weight': ItemWeight(j.raw_item_code) * mr_machine_rejection,
@@ -290,7 +292,8 @@ class Subcontracting(Document):
 								'raw_item_name': ItemName(j.raw_item_code),
 								'quantity': rw_rework,
 								'rejection_type' :'RW (Rework)' ,
-								'source_warehouse': r if r else j.source_warehouse,
+								'source_warehouse':j.source_warehouse,
+								'target_warehouse':r ,
 								'reference_id':i.reference_id,
 								'weight_per_unit':ItemWeight(j.raw_item_code),
 								'total_rejected_weight': ItemWeight(j.raw_item_code) * rw_rework,
@@ -301,7 +304,7 @@ class Subcontracting(Document):
 		for j in self.get("in_finished_item_subcontracting"):
 			j.total_quantity = getVal(j.quantity) + getVal(j.cr_casting_rejection) + getVal(j.mr_machine_rejection) + getVal(j.rw_rework) + getVal(j.as_it_is)
 			j.total_finished_weight =  j.total_quantity * getVal(j.weight_per_unit)
-			j.total_amount = j.total_quantity * getVal(j.rate_from_order)
+			j.total_amount = getVal(j.quantity) * getVal(j.rate_from_order)
 
 	@frappe.whitelist()
 	def bifurgation_quantity_calculate(self):
@@ -350,10 +353,10 @@ class Subcontracting(Document):
 				frappe.throw(f"You Can Not Inword {item} As It Have Not Any Out Entry")
 
 
-	# @frappe.whitelist()
-	# def set_source_warehouse(self):
-	# 	self.set_table_data('in_raw_item_subcontracting','source_warehouse',self.source_warehouse,'available_quantity','raw_item_code','source_warehouse')
-	# 	self.set_table_data('in_rejected_items_reasons_subcontracting','source_warehouse', self.source_warehouse,'available_quantity','raw_item_code','source_warehouse')
+	@frappe.whitelist()
+	def set_source_warehouse(self):
+		self.set_table_data('in_raw_item_subcontracting','source_warehouse',self.source_warehouse,'available_quantity','raw_item_code','source_warehouse')
+		self.set_table_data('in_rejected_items_reasons_subcontracting','source_warehouse', self.source_warehouse,'available_quantity','raw_item_code','source_warehouse')
 
 
 
@@ -440,6 +443,7 @@ class Subcontracting(Document):
 	@frappe.whitelist()
 	def manifacturing_stock_entry(self):
 		if self.in_or_out == 'IN':
+			default_expense_account = frappe.get_value('Subcontracting Setting',self.company ,'default_expense_account')
 			in_finished =  self.get('in_finished_item_subcontracting' , filters = {'quantity': ['not in',(None,0)]})
 			for i in in_finished :
 				se = frappe.new_doc("Stock Entry")
@@ -466,6 +470,17 @@ class Subcontracting(Document):
 							"t_warehouse": i.target_warehouse,
 							"is_finished_item": True
 						},)
+
+				if i.total_amount and default_expense_account:
+					se.append(
+								"additional_costs",
+								{
+									"expense_account":default_expense_account,
+									"description": str(i.operation),
+									"amount": i.total_amount ,
+
+								},)
+
 				se.custom_subcontracting = self.name
 				if se.items:		
 					se.insert()
