@@ -9,6 +9,7 @@
  "field_order": [
   "in_item_code",
   "order_type",
+  "subcontracting",
   "column_break_ywr5a",
   "in_item_name",
   "select_order",
@@ -41,7 +42,6 @@
   "total_amount",
   "reference_id",
   "column_break_l299s",
-  "scj_parent",
   "unvaried"
  ],
  "fields": [
@@ -219,7 +219,6 @@
   {
    "fieldname": "reference_id",
    "fieldtype": "Data",
-   "hidden": 1,
    "label": "Reference ID"
   },
   {
@@ -238,12 +237,6 @@
    "label": "Rate From Order"
   },
   {
-   "fieldname": "scj_parent",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "SCJ_Parent"
-  },
-  {
    "default": "0",
    "fetch_from": "operation.unvaried",
    "fieldname": "unvaried",
@@ -253,12 +246,20 @@
   {
    "fieldname": "column_break_vp1zo",
    "fieldtype": "Column Break"
+  },
+  {
+   "columns": 1,
+   "fieldname": "subcontracting",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Subcontracting",
+   "options": "Subcontracting"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-03-07 20:25:12.403259",
+ "modified": "2024-03-26 14:53:50.560051",
  "modified_by": "Administrator",
  "module": "Outsourcing JobWork",
  "name": "IN Finished Item Subcontracting",

@@ -52,7 +52,7 @@ class Subcontracting(Document):
 # =================================================================================================== BOTH ===================================================================================================
 
 	@frappe.whitelist()
-	def set_table_data(self , table , table_field , field_data , qty_field = None, item_code = None , warehouse_field = None):
+	def set_table_data(self , table , table_field , field_data = None , qty_field = None, item_code = None , warehouse_field = None):
 		items_table = self.get(table)
 		for i in items_table:
 			setattr(i, table_field, field_data)
@@ -89,7 +89,171 @@ class Subcontracting(Document):
 			se.save()
 			se.submit()
 
+
+	def raw_item_list(self):
+		item_list = []
+		if self.in_entry_type == 'Subcontracting' and self.linking_option and (self.blanket_order or self.purchase_order) :
+			if self.linking_option == 'Blanket Order':
+				b_o_l = []
+				for i in self.blanket_order:
+					b_o_l.append(str(i.blanket_order))
+
+				doctype = 'Blanket Order Item'
+				filters = {'parent':['in',b_o_l]}
+				fields = ['item_code' , 'parent','custom_subcontracting_operations','rate']
+
+			else:
+				p_o_l = []
+				for j in self.purchase_order:
+					p_o_l.append(str(j.purchase_order))
+
+				doctype = 'Purchase Order Item'
+				filters = {'parent':['in',p_o_l]}
+				fields = ['item_code' , 'parent','custom_subcontracting_operations','rate']
+
+			doc = frappe.get_all(doctype , filters = filters , fields = fields)
+			for j in doc:
+				if j.item_code:
+					unvaried = frappe.get_value('Subcontracting Operations',j.custom_subcontracting_operations , 'unvaried')
+					if unvaried :
+						item_list.append(j.item_code)
+
+					else:
+						bom_exist = frappe.get_value("Outsourcing BOM",j.item_code,'name')
+						if bom_exist :
+							bom = frappe.get_doc("Outsourcing BOM",j.item_code)
+							child_bom = bom.get("outsourcing_bom_details")
+							for k in child_bom:
+								item_list.append(k.item_code)
+								
+						else:
+							raw_item_code = frappe.get_value("Item",j.item_code,'raw_material')
+							if raw_item_code:
+								item_list.append(raw_item_code)
+							
+							else:
+								frappe.msgprint(f"There is no 'Raw Material'defined at Item master of Item {j.item_code}")
+		return item_list
+
 # =================================================================================================== IN ===================================================================================================
+	@frappe.whitelist()
+	def set_out_sub_list(self):
+		if self.in_or_out == 'IN' and (self.without_order or self.blanket_order or self.purchase_order):
+			supplier_id = self.supplier_id
+			company = self.company
+			if not supplier_id and not company:
+				frappe.throw('Please select supplier_id and company')
+			else :
+				
+				query = """
+									SELECT a.name name, b.raw_item_code ,b.production_quantity ,b.production_done_quantity , b.name reference_id , b.subcontracting_operations
+									FROM `tabSubcontracting` a
+									LEFT JOIN `tabItems Subcontracting` b ON a.name = b.parent
+									WHERE a.supplier_id = %s AND a.company = %s AND b.docstatus = 1 AND b.out_done = 0
+						"""
+
+				paremeters = [supplier_id , company]
+				if self.in_entry_type == 'Subcontracting' and self.linking_option and (self.blanket_order or self.purchase_order):
+					item_list = self.raw_item_list()
+					if item_list :
+						paremeters.append(tuple(item_list))
+						query += """ AND b.raw_item_code  in %s """
+
+					else:
+						pass
+
+
+				query += """ORDER BY b.raw_item_code """
+						
+
+
+
+				data = frappe.db.sql(query,tuple(paremeters),as_dict="True")
+				
+				for i in data:
+
+					self.append("out_subcontracting_list",
+												{	'subcontracting': i.name ,
+													'raw_item_code'	: i.raw_item_code ,
+													'raw_item_name':ItemName(i.raw_item_code),
+													'subcontracting_operations':i.subcontracting_operations,
+													'production_out_quantity': getVal(i.production_quantity) ,
+													'production_done_quantity':getVal(i.production_done_quantity) ,
+													'production_remaining_quantity': getVal(i.production_quantity) - getVal(i.production_done_quantity),
+													'reference_id': i.reference_id,
+													'weight_per_unit':ItemWeight(i.raw_item_code),
+												},),
+			
+	@frappe.whitelist()
+	def set_out_list_in_finished_item(self):
+		if self.in_or_out == 'IN':
+			out_subcontracting_list = self.get('out_subcontracting_list' , filters = {'check': True , 'subcontracting_operations' : ['not in',(None,'')]})
+			if  out_subcontracting_list:
+				for d in out_subcontracting_list:
+					unvaried = frappe.get_value('Subcontracting Operations',d.subcontracting_operations , 'unvaried')
+					if unvaried :
+						self.append("in_finished_item_subcontracting",
+											{	
+												'in_item_code': d.raw_item_code,
+												'in_item_name': ItemName(d.raw_item_code),
+												'order_type': d.order_type,
+												'select_order': d.select_order,
+												'operation': d.subcontracting_operations,
+												'target_warehouse' : self.target_warehouse,
+												'unvaried': unvaried,
+												'weight_per_unit':ItemWeight(d.raw_item_code),
+												'rate_from_order': d.rate_from_order,
+												'subcontracting': d.subcontracting,
+											},),
+					else:
+						# bom_exist = frappe.get_value("Outsourcing BOM",j.in_item_code,'name')
+						# if bom_exist :
+						# 	pass
+							# bom = frappe.get_doc("Outsourcing BOM",j.in_item_code)
+							# child_bom = bom.get("outsourcing_bom_details")
+							# for k in child_bom:
+							# 	self.append("in_raw_item_subcontracting",
+							# 				{	'in_item_code': j.in_item_code ,
+							# 					'raw_item_code'	: k.item_code,
+							# 					'raw_item_name':ItemName(k.item_code),
+							# 					'quantity_per_finished_item': k.required_quantity,
+							# 					'actual_required_quantity': getVal(j.quantity) * getVal(k.required_quantity),
+							# 					'quantity': getVal(j.quantity) * getVal(k.required_quantity),
+							# 					'reference_id': j.name,
+							# 					'source_warehouse':self.source_warehouse,
+							# 					'weight_per_unit':ItemWeight(k.item_code),
+							# 					'total_required_weight': ItemWeight(k.item_code) * (getVal(j.quantity) * getVal(k.required_quantity)),
+							# 				},),
+						# else:
+							finish_item_code = frappe.get_value("Item",{'raw_material': d.raw_item_code},'name')
+							if finish_item_code:
+								self.append("in_finished_item_subcontracting",
+											{	
+												'in_item_code': finish_item_code,
+												'in_item_name': ItemName(finish_item_code),
+												'order_type': d.order_type,
+												'select_order': d.select_order,
+												'operation': d.subcontracting_operations,
+												'target_warehouse' : self.target_warehouse,
+												'unvaried': unvaried,
+												'weight_per_unit':ItemWeight(finish_item_code),
+												'rate_from_order': d.rate_from_order,
+												'subcontracting': d.subcontracting,
+											},),
+							else:
+								frappe.msgprint(f"There is no 'Raw Item '{d.raw_item_code} defined at any Item master")
+
+
+
+
+
+
+
+
+
+
+
+			
 	@frappe.whitelist()
 	def set_in_finished_item(self):
 		if self.in_entry_type == 'Subcontracting' and self.linking_option and (self.blanket_order or self.purchase_order) :
@@ -124,9 +288,11 @@ class Subcontracting(Document):
 											'weight_per_unit':ItemWeight(d.item_code),
 											'rate_from_order': d.rate,
 											},),
+	
 
 	@frappe.whitelist()
 	def set_raw_order_data(self , table):
+		self.set_quantity()
 		self.finish_total_quantity_calculate()
 		items = self.get(table)
 		for j in items:
@@ -181,6 +347,100 @@ class Subcontracting(Document):
 							frappe.msgprint(f"There is no 'Raw Material'defined at Item master of Item {j.in_item_code}")
 		self.set_table_data('in_finished_item_subcontracting' , 'target_warehouse' , self.target_warehouse ,)
 		self.set_out_subcontracting()
+		self.update_bifurcation_out_subcontracting()
+
+	@frappe.whitelist()
+	def update_bifurcation_out_subcontracting(self):
+		for d in self.get('in_finished_item_subcontracting'):
+			if d.subcontracting:
+				ok_quantity = getVal(d.quantity)
+				as_it_is = getVal(d.as_it_is)
+				cr_casting_rejection = getVal(d.cr_casting_rejection)
+				mr_machine_rejection = getVal(d.mr_machine_rejection)
+				rw_rework = getVal(d.rw_rework)
+
+				total_quantity = as_it_is + cr_casting_rejection + mr_machine_rejection + rw_rework +ok_quantity
+				total_value = total_quantity
+
+				rows = self.get('bifurcation_out_subcontracting', filters={'subcontracting': d.subcontracting})
+
+				remaining_value = total_value
+				for r in rows:
+					row_capacity = r.production_remaining_quantity
+					if remaining_value >= row_capacity:
+						
+						# Distribute as_it_is, cr_casting_rejection, mr_machine_rejection, rw_rework
+						r.ok_quantity = min(ok_quantity, row_capacity)
+						ok_quantity -= r.ok_quantity
+						r.as_it_is = min(as_it_is, row_capacity)
+						as_it_is -= r.as_it_is
+						r.cr_quantity = min(cr_casting_rejection, row_capacity)
+						cr_casting_rejection -= r.cr_quantity
+						r.mr_quantity = min(mr_machine_rejection, row_capacity)
+						mr_machine_rejection -= r.mr_quantity
+						r.rw_quantity = min(rw_rework, row_capacity)
+						rw_rework -= r.rw_quantity
+
+						r.production_quantity = row_capacity
+
+						remaining_value -= row_capacity
+					else:
+						
+						# Distribute remaining as_it_is, cr_casting_rejection, mr_machine_rejection, rw_rework
+						r.ok_quantity = min(ok_quantity, remaining_value)
+						ok_quantity -= r.ok_quantity
+						r.as_it_is_quantity = min(as_it_is, remaining_value)
+						as_it_is -= r.as_it_is_quantity
+						r.cr_quantity = min(cr_casting_rejection, remaining_value)
+						cr_casting_rejection -= r.cr_quantity
+						r.mr_quantity = min(mr_machine_rejection, remaining_value)
+						mr_machine_rejection -= r.mr_quantity
+						r.rw_quantity = min(rw_rework, remaining_value)
+						rw_rework -= r.rw_quantity
+
+						r.production_quantity = remaining_value
+
+						remaining_value = 0
+						break
+
+				if remaining_value > 0:
+					frappe.throw("Not enough capacity in rows to distribute all values.")
+
+	# @frappe.whitelist()
+	# def update_bifurcation_out_subcontracting(self):
+	# 	for d in self.get('in_finished_item_subcontracting'):
+	# 		if d.subcontracting:
+	# 			as_it_is = getVal(d.as_it_is)
+	# 			cr_casting_rejection = getVal(d.cr_casting_rejection)
+	# 			mr_machine_rejection = getVal(d.mr_machine_rejection)
+	# 			rw_rework = getVal(d.rw_rework)
+
+	# 			total_quantity = as_it_is + cr_casting_rejection + mr_machine_rejection + rw_rework
+	# 			total_value = total_quantity
+
+
+	# 			rows = self.get('bifurcation_out_subcontracting' , filters={'subcontracting':d.subcontracting})
+				
+	# 			remaining_value = total_value
+	# 			for r in rows:
+	# 				row_capacity = r.production_remaining_quantity
+	# 				frappe.msgprint(str(r.production_remaining_quantity))
+	# 				if remaining_value >= row_capacity:
+	# 					frappe.msgprint('if')
+	# 					# r.production_quantity = row_capacity
+	# 					setattr(r, 'production_quantity', row_capacity)
+	# 					remaining_value -= row_capacity
+	# 				else:
+	# 					frappe.msgprint('else')
+	# 					# r.production_quantity = remaining_value
+	# 					setattr(r, 'production_quantity', remaining_value)
+	# 					remaining_value = 0
+	# 					break
+
+	# 			if remaining_value > 0:
+	# 				frappe.throw("Not enough capacity in rows to distribute all values.")
+
+
 
 	@frappe.whitelist()
 	def set_out_subcontracting(self):
@@ -188,7 +448,7 @@ class Subcontracting(Document):
 		raw_item_code_list = []
 		supplier_id = self.supplier_id
 		company = self.company
-		if not supplier_id and company:
+		if not supplier_id and not company:
 			frappe.throw('Please select supplier_id and company')
 		for d in in_raw_item_subcontracting:
 			raw_item_code_list.append(str(d.raw_item_code))
@@ -210,6 +470,11 @@ class Subcontracting(Document):
 											'reference_id': i.reference_id,
 											'weight_per_unit':ItemWeight(i.raw_item_code),
 										},),
+		out_subcontracting_list = self.get('out_subcontracting_list', filters = {'check': True})
+		if 	out_subcontracting_list:
+			for p in out_subcontracting_list:
+				for q in self.get('bifurcation_out_subcontracting', filters = {'reference_id': p.reference_id}):
+					q.check = True
 
 	@frappe.whitelist()
 	def set_quantity(self):
@@ -510,5 +775,3 @@ class Subcontracting(Document):
 			else:
 				doc.out_done = False
 			doc.save()
-
-	

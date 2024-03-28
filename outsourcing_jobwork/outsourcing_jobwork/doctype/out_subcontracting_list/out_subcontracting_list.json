@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2024-03-05 14:28:32.348307",
+ "creation": "2024-03-25 12:52:49.960614",
  "default_view": "List",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -12,27 +12,27 @@
   "raw_item_code",
   "column_break_hcejg",
   "raw_item_name",
+  "column_break_sqinw",
+  "subcontracting_operations",
   "section_break_o7huc",
-  "ok_quantity",
-  "check",
-  "column_break_wjnlw",
-  "cr_quantity",
+  "order_type",
+  "column_break_ow2l9",
+  "select_order",
+  "column_break_wlkpc",
+  "rate_from_order",
+  "section_break_o086y",
   "production_out_quantity",
-  "column_break_dxuil",
-  "mr_quantity",
+  "column_break_wjnlw",
   "production_done_quantity",
-  "column_break_iqxxz",
-  "rw_quantity",
+  "column_break_dxuil",
   "production_remaining_quantity",
-  "column_break_3likz",
-  "as_it_is_quantity",
-  "production_quantity",
+  "column_break_iqxxz",
+  "check",
   "section_break_vonmc",
   "source_warehouse",
   "column_break_rlr6o",
   "available_quantity",
   "column_break_mzuhn",
-  "target_warehouse",
   "section_break_ar5wf",
   "weight_per_unit",
   "column_break_snmvd",
@@ -50,11 +50,6 @@
    "options": "Subcontracting"
   },
   {
-   "fieldname": "production_out_quantity",
-   "fieldtype": "Float",
-   "label": "production_out_quantity"
-  },
-  {
    "fieldname": "column_break_es340",
    "fieldtype": "Column Break"
   },
@@ -66,11 +61,6 @@
    "label": "Raw Item Code",
    "options": "Item",
    "reqd": 1
-  },
-  {
-   "fieldname": "production_done_quantity",
-   "fieldtype": "Float",
-   "label": "production_done_quantity"
   },
   {
    "fieldname": "column_break_hcejg",
@@ -85,20 +75,44 @@
    "label": "Raw Item Name"
   },
   {
-   "fieldname": "production_remaining_quantity",
-   "fieldtype": "Float",
-   "label": "production_remaining_quantity"
+   "fieldname": "section_break_o7huc",
+   "fieldtype": "Section Break"
   },
   {
-   "columns": 1,
-   "fieldname": "production_quantity",
+   "fieldname": "column_break_wjnlw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 2,
+   "fieldname": "production_out_quantity",
    "fieldtype": "Float",
-   "in_list_view": 1,
-   "label": "Production Quantity ",
+   "label": "Out Quantity",
    "read_only": 1
   },
   {
-   "fieldname": "section_break_o7huc",
+   "fieldname": "column_break_dxuil",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 2,
+   "fieldname": "production_done_quantity",
+   "fieldtype": "Float",
+   "label": "Done Quantity",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_iqxxz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 2,
+   "fieldname": "production_remaining_quantity",
+   "fieldtype": "Float",
+   "label": "Remaining Quantity",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_vonmc",
    "fieldtype": "Section Break"
   },
   {
@@ -106,6 +120,10 @@
    "fieldtype": "Link",
    "label": "Source Warehouse",
    "options": "Warehouse"
+  },
+  {
+   "fieldname": "column_break_rlr6o",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "available_quantity",
@@ -118,24 +136,20 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "target_warehouse",
-   "fieldtype": "Link",
-   "label": "Target Warehouse",
-   "options": "Warehouse"
-  },
-  {
    "fieldname": "section_break_ar5wf",
    "fieldtype": "Section Break"
   },
   {
-   "columns": 1,
    "fieldname": "weight_per_unit",
    "fieldtype": "Float",
    "in_list_view": 1,
    "label": "Weight Per Unit"
   },
   {
-   "columns": 1,
+   "fieldname": "column_break_snmvd",
+   "fieldtype": "Column Break"
+  },
+  {
    "fieldname": "total_finished_weight",
    "fieldtype": "Float",
    "in_list_view": 1,
@@ -154,74 +168,59 @@
    "label": "Out Done"
   },
   {
-   "fieldname": "ok_quantity",
-   "fieldtype": "Float",
-   "label": "OK Quantity"
-  },
-  {
-   "fieldname": "column_break_wjnlw",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "cr_quantity",
-   "fieldtype": "Float",
-   "label": "CR Quantity"
-  },
-  {
-   "fieldname": "column_break_dxuil",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "mr_quantity",
-   "fieldtype": "Float",
-   "label": "MR Quantity"
-  },
-  {
-   "fieldname": "column_break_iqxxz",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "rw_quantity",
-   "fieldtype": "Float",
-   "label": "RW Quantity"
-  },
-  {
-   "fieldname": "column_break_3likz",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "as_it_is_quantity",
-   "fieldtype": "Float",
-   "label": "AS IT IS Quantity"
-  },
-  {
-   "fieldname": "section_break_vonmc",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "column_break_rlr6o",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "column_break_snmvd",
-   "fieldtype": "Column Break"
-  },
-  {
    "columns": 1,
    "default": "0",
    "fieldname": "check",
    "fieldtype": "Check",
-   "label": "Check",
-   "read_only": 1
+   "label": "Check"
+  },
+  {
+   "fieldname": "column_break_sqinw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "subcontracting_operations",
+   "fieldtype": "Link",
+   "label": "Subcontracting Operations",
+   "options": "Subcontracting Operations"
+  },
+  {
+   "fieldname": "order_type",
+   "fieldtype": "Link",
+   "label": "order_type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "select_order",
+   "fieldtype": "Dynamic Link",
+   "label": "select_order",
+   "options": "order_type"
+  },
+  {
+   "fieldname": "column_break_ow2l9",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_o086y",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_wlkpc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rate_from_order",
+   "fieldtype": "Float",
+   "label": "rate_from_order"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-03-25 14:39:15.798443",
+ "modified": "2024-03-26 12:11:44.823024",
  "modified_by": "Administrator",
  "module": "Outsourcing JobWork",
- "name": "Bifurcation Out Subcontracting",
+ "name": "Out Subcontracting List",
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",

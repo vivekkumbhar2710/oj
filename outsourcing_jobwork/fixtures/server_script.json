@@ -14,5 +14,37 @@
   "reference_doctype": "Item",
   "script": "production_uom_definition = doc.get(\"custom_production_uom_definition\")\n\ncheck_list = []\nfor d in production_uom_definition:\n\tif d.uom in check_list:\n\t\tfrappe.throw(\"UNIQUE UOM \ud83e\udee3\ud83e\udee3\ud83e\udee3\ud83e\udee3\ud83e\udee3\ud83e\udee3\")\n\telse:\n\t\tcheck_list.append((d.uom))\n\n\nif production_uom_definition:\n    for p in production_uom_definition:\n        if doc.stock_uom == p.uom:\n            frappe.throw(\"You Can Not Add Default Unit of Measure In Table 'Production UOM Definition'\")\n        else:\n            uoms_conversion_details = doc.get(\"uoms\" ,filters = {\"uom\": p.uom })\n            if uoms_conversion_details:\n                for ucd in uoms_conversion_details:\n                    if ucd.uom == p.uom:\n                        ucd.conversion_factor = (1/p.value_per_unit)\n            else:\n                doc.append(\"uoms\",{\n\t\t\t\t\t'uom': p.uom ,\n\t\t\t\t\t'conversion_factor': (1/p.value_per_unit),\n\t\t\t\t},),\n                        \n",
   "script_type": "DocType Event"
+ },
+ {
+  "allow_guest": 0,
+  "api_method": null,
+  "cron_format": null,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Server Script",
+  "doctype_event": "Before Submit",
+  "event_frequency": "All",
+  "modified": "2024-03-27 16:26:27.138458",
+  "module": "Manufacturing",
+  "name": "Item Details",
+  "reference_doctype": "Blanket Order",
+  "script": "item_list =[]\nif doc.items:\n    for d in doc.items:\n        item_list.append(str(d.item_code))\n            \n    doc.custom_item_details = str(item_list)\n        \n        \n        \n       \n       \n\n ",
+  "script_type": "DocType Event"
+ },
+ {
+  "allow_guest": 0,
+  "api_method": null,
+  "cron_format": null,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Server Script",
+  "doctype_event": "Before Submit",
+  "event_frequency": "All",
+  "modified": "2024-03-27 16:27:11.475802",
+  "module": "Buying",
+  "name": "Item Details PO",
+  "reference_doctype": "Purchase Order",
+  "script": "item_list =[]\nif doc.items:\n    for d in doc.items:\n        item_list.append(str(d.item_code))\n            \n    doc.custom_item_details = str(item_list)\n        ",
+  "script_type": "DocType Event"
  }
 ]

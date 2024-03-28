@@ -10,6 +10,8 @@
   "raw_item_code",
   "column_break_es340",
   "raw_item_name",
+  "column_break_mkooe",
+  "subcontracting_operations",
   "column_break_zrwqr",
   "production_quantity",
   "section_break_o7huc",
@@ -123,12 +125,23 @@
    "fieldname": "out_done",
    "fieldtype": "Check",
    "label": "Out Done"
+  },
+  {
+   "fieldname": "column_break_mkooe",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 2,
+   "fieldname": "subcontracting_operations",
+   "fieldtype": "Link",
+   "label": "Subcontracting Operations",
+   "options": "Subcontracting Operations"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-03-07 10:25:53.857390",
+ "modified": "2024-03-25 14:48:39.066580",
  "modified_by": "Administrator",
  "module": "Outsourcing JobWork",
  "name": "Items Subcontracting",
