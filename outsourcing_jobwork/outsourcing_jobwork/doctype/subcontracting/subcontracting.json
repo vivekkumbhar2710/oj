@@ -43,6 +43,15 @@
   "in_loan_items_subcontracting",
   "section_break_q1xtc",
   "bifurcation_out_subcontracting",
+  "address_details_tab",
+  "billing_address_section",
+  "supplier_address",
+  "column_break_aly36",
+  "sup_adderss",
+  "company_address_section",
+  "company_address",
+  "column_break_r7wmx",
+  "comp_address",
   "amended_from"
  ],
  "fields": [
@@ -277,6 +286,51 @@
    "fieldtype": "Table",
    "label": "Out Subcontracting List",
    "options": "Out Subcontracting List"
+  },
+  {
+   "fieldname": "address_details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Address Details"
+  },
+  {
+   "fieldname": "billing_address_section",
+   "fieldtype": "Section Break",
+   "label": "Billing Address"
+  },
+  {
+   "fieldname": "supplier_address",
+   "fieldtype": "Link",
+   "label": "Supplier Address",
+   "options": "Address"
+  },
+  {
+   "fieldname": "column_break_aly36",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sup_adderss",
+   "fieldtype": "Small Text",
+   "label": "Address"
+  },
+  {
+   "fieldname": "company_address_section",
+   "fieldtype": "Section Break",
+   "label": "Company Address"
+  },
+  {
+   "fieldname": "company_address",
+   "fieldtype": "Link",
+   "label": "Company Address",
+   "options": "Address"
+  },
+  {
+   "fieldname": "column_break_r7wmx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "comp_address",
+   "fieldtype": "Small Text",
+   "label": "Address"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -287,7 +341,7 @@
    "link_fieldname": "custom_subcontracting"
   }
  ],
- "modified": "2024-03-26 15:24:02.977326",
+ "modified": "2024-03-30 12:13:28.111599",
  "modified_by": "Administrator",
  "module": "Outsourcing JobWork",
  "name": "Subcontracting",
